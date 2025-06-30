@@ -19,8 +19,23 @@ const listEndpoints = require('express-list-endpoints');
 console.log(listEndpoints(app));
 
 app.get("/", (req, res) => {
-  res.send("Welcome to Mobile Veternary Services");
+  res.send(`
+    <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+      <h1 style="color:rgb(223, 16, 212);">🌟Welcome to <strong>Mobile Veternary Services</strong>🌟</h1>
+      <h2 style="color:rgb(223, 16, 212);">Stay tuned for incredible changes ahead!</strong></h2>
+    </div>
+  `);
 });
+
+app.get("/mvet", (req, res) => {
+  res.send(`
+    <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+      <h1 style="color:rgb(223, 16, 212);">🌟Welcome to <strong>Mobile Veternary Services</strong>🌟</h1>
+      <h2 style="color:rgb(223, 16, 212);">Stay tuned for incredible changes ahead!</strong></h2>
+    </div>
+  `);
+});
+
 
 app.enable('trust proxy'); //Set trust proxy correctly based on whether your application is behind a proxy.
 
