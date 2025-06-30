@@ -1,14 +1,11 @@
 const fs = require('fs');
 const fss = require('fs').promises;  // Use fs.promises for async file reading
-const sharp = require('sharp');
 const path = require('path');
-const xlsx = require('xlsx'); //for import user from excel
+//const xlsx = require('xlsx'); //for import user from excel
 
 const multer = require('multer');
 const catchAsync = require('./catchAsync');
 const AppError = require('./appError');
-const { match } = require('assert');
-const { url } = require('inspector');
 
 exports.importFromExcel = catchAsync(async (req,Model, transformFn) => {
     console.log("hereexcel")

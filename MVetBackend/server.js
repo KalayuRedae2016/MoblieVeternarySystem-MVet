@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const app = require("./index");
 const { connectDB, sequelize } = require("./config/db");
 
-const { createDefaultAdminUser } = require("./utils/userUtils"); // Import the function
+const { createDefaultAdminUser } = require("./Utils/userUtils"); // Import the function
 // Load environment variables based on the NODE_ENV
 const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env.development";
 dotenv.config({ path: envFile });

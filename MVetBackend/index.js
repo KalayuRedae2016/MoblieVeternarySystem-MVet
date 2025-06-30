@@ -18,9 +18,9 @@ const app = express(); //start Express app
 const listEndpoints = require('express-list-endpoints');
 console.log(listEndpoints(app));
 
-// app.get("/", (req, res) => {
-//   res.send("Welcome to Mobile Veternary Services");
-// });
+app.get("/", (req, res) => {
+  res.send("Welcome to Mobile Veternary Services");
+});
 
 app.enable('trust proxy'); //Set trust proxy correctly based on whether your application is behind a proxy.
 
@@ -106,12 +106,13 @@ app.use((req, res, next) => {
 //  #2 Routers
 app.use('/api/mvet/users',userRouter);
 
-// // Catch-all route handler for undefined routes
-// app.all('*', (req, res, next) => {
+
+// Catch-all route handler for undefined routes
+//  app.all('*', (req, res, next) => {
 //     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 // });
 
 // Global error handling middleware
-//app.use(globalErrorHandler);
+// app.use(globalErrorHandler);
 
 module.exports = app;
