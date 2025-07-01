@@ -31,7 +31,6 @@ exports.uploadFilesMiddleware = attachments.fields([
   { name: 'documents', maxCount: 10 }, // Up to 10 files for documents
 ]);
 
-
 // Signup controller
 exports.signup = catchAsync(async (req, res,next) => {
     const { name, email, password, role } = req.body;
@@ -104,3 +103,4 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     users
   });
 });
+
