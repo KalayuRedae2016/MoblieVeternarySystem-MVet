@@ -17,7 +17,6 @@ const signInToken = (user) => {
   return jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRES_IN});
 };
 
-
 //attachements=documents and images
 const attachments = createMulterMiddleware(
   'uploads/documents', // Destination folder

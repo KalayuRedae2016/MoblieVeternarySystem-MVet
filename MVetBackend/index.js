@@ -7,7 +7,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const hpp = require('hpp');
-
+const morgan=require("morgan")
 const AppError = require('./Utils/appError');
 const globalErrorHandler = require('./Controllers/errorController');
 
