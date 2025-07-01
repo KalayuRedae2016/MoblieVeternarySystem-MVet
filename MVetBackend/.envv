@@ -1,0 +1,75 @@
+NODE_ENV=development
+DATABASE_PASSWORD=bana1234
+MONGODB_URI=mongodb://127.0.0.1:27017/Paymentmanagmentsystem
+#MONGODB_URI=mongodb://banaAdmin:bana1234@127.0.0.1:27017/Paymentmanagmentsystem?authSource=admin
+
+PORT=8081
+SSL=false
+
+BASE_URL=http://localhost:5173
+JWT_SECRET=We_live_nothing_in_this_world
+JWT_EXPIRES_IN=5h
+#JWT_EXPIRES_IN=30s
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_USERNAME=kalayuredae2@gmail.com
+EMAIL_PASSWORD=wmxl snkx sdgl ulye
+
+apiKey_ROUTE_PASSWORD=5173
+
+# MONGODB_URI = mongodb://banaAdmin:bana1234@49.13.235.6:27017/Paymentmanagmentsystem?authSource=admin&ssl=true;
+# SSL=true
+# BASE_URL=49.13.235.6
+
+#To secure Mongodb
+#Enable the access controle and restart
+#create admin user with credentails
+
+#mongosh -u banaAdmin -p bana1234 --authenticationDatabase admin
+#MONGODB_URI=mongodb://banaAdmin:bana1234@127.0.0.1:27017/Paymentmanagmentsystem?authSource=admin
+
+#mongosh --host 49.13.235.6 --port 27017 -u banaAdmin -p bana1234 --authenticationDatabase admin
+#MONGODB_URI=mongodb://banaAdmin:bana1234@49.13.235.6:27017/Paymentmanagmentsystem?authSource=admin
+
+
+# MONGODB_USER=banaAdmin
+# MONGODB_PASSWORD=bana1234
+# MONGODB_HOST=localhost ||127.0.0.1
+# MONGODB_PORT=27017
+# MONGODB_DB=admin
+# # 
+
+#mongo -u banaAdmin -p bana1234 --authenticationDatabase admin
+# use admin
+# db.getUsers()
+# mongodb://banaAdmin:bana1234@49.13.235.6:27017/Paymentmanagmentsystem?authSource=admin
+
+# Backup MongoDB data with mongodump
+#mongodump --out ~/mongodb-backup-3.6
+
+# Backup the MongoDB config file
+#sudo cp /etc/mongod.conf ~/mongod.conf.backup
+
+# Backup the MongoDB data folder (just to be safe)
+#sudo cp -r /var/lib/mongodb ~/mongodb-data-backup
+
+# mongorestore ~/mongodb-backup-3.6 //restore db
+
+# sudo apt-get purge mongodb-org* :sudo apt-get purge mongodb-org*
+
+# sudo systemctl stop mongod -stop MongoDB service
+
+# mongosh "mongodb://banaAdmin:bana1234@49.13.235.6:27017/Paymentmanagmentsystem?authSource=admin"
+
+
+# sudo cp /etc/mongod.conf ~/mongod.conf.backup
+
+# sudo cp /etc/nginx/nginx.conf ~/nginx.conf.backup
+# sudo cp -r /etc/nginx/sites-available ~/nginx-sites-available-backup
+# sudo cp -r /etc/nginx/sites-enabled ~/nginx-sites-enabled-backup
+
+# sudo cp -r /etc/letsencrypt ~/letsencrypt-backup
+
+# cp /path/to/your-app/.env ~/app-env-backup.env
+
+# tar -czvf node-app-backup.tar.gz /path/to/your-nodejs-app
