@@ -5,21 +5,14 @@ const Log = require('./../Models/logModel');
 const fs = require('fs');
 const path = require('path');
 const validator = require('validator');
-const xlsx = require('xlsx'); 
-const mongoose=require("mongoose")
 
-const { sendEmail } = require('../utils/email');
-const {logAction}=require("../utils/logUtils")
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+const { sendEmail } = require('../Utils/email');
+const {logAction}=require("../Utils/logUtils")
+const catchAsync = require('../Utils/catchAsync');
+const AppError = require('../Utils/appError');
 const { formatDate } = require("../utils/formatDate")
-const {validateExistence}=require("../utils/validateExistence")
-const {normalizePhoneNumber}=require("../utils/userUtils")
-const { isUserCompliant } = require('../utils/checkCompliance');
 
-const defaultVariables = require('../config/defaultVariables');
 const {processFileData,createMulterMiddleware, processUploadFiles,deleteFile} = require('../utils/fileController');
-const { param } = require('../routes/userRouter');
 
 // Configure multer for user file uploads
 const userFileUpload = createMulterMiddleware(
@@ -212,8 +205,6 @@ exports.deleteUsers = catchAsync(async (req, res, next) => {
     message: `${deletedUsers.deletedCount} Users Deleted`
   });
 });
-
-
 
 exports.sendEmailMessages = catchAsync(async (req, res, next) => {
   const { emailList, subject, message } = req.body;

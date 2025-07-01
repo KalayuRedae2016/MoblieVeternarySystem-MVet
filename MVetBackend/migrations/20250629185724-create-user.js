@@ -22,6 +22,7 @@ module.exports = {
         type: Sequelize.ENUM('user', 'doctor', 'admin'),
         allowNull: false
       },
+      profileImage:{type:Sequelize.STRING},
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

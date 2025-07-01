@@ -1,7 +1,6 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const {  Model} = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -21,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('user', 'doctor', 'admin'),
       allowNull: false
     },
+  profileImage:{type:DataTypes.STRING}
   }, {
     sequelize,
     modelName: 'User',
