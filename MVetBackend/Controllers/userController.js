@@ -1,9 +1,5 @@
-const bcrypt = require('bcrypt');
-const sharp = require('sharp');
 const User = require('./../Models/userModel');
 const Log = require('./../Models/logModel');
-const fs = require('fs');
-const path = require('path');
 const validator = require('validator');
 
 const { sendEmail } = require('../Utils/email');
@@ -12,7 +8,7 @@ const catchAsync = require('../Utils/catchAsync');
 const AppError = require('../Utils/appError');
 const { formatDate } = require("../utils/formatDate")
 
-const {processFileData,createMulterMiddleware, processUploadFiles,deleteFile} = require('../utils/fileController');
+const {processFileData,createMulterMiddleware, processUploadFiles} = require('../Utils/fileController');
 
 // Configure multer for user file uploads
 const userFileUpload = createMulterMiddleware(
@@ -38,15 +34,10 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 
   const { isActive } = req.query;
   let userQuery = {};
-  if(req.user.role==="SuperAdmin"){
-    userQuery.role={$in:["SuperAdmin","Admin","Broker","Buyer","Seller","Guest"]}
-  }else if(req.user.role==="Admin"){
-    userQuery.role={$in:["Admin","Broker","Buyer","Seller","Guest"]}
-  }else if(req.user.role==="Broker"){
-    userQuery.role={$in:["Buyer","Seller","Guest"]}
-    userQuery.referredBy=req.user._id
+  if(req.user.role==="Admin"){
+    userQuery.role={$in:["Admin"]}
   }else{
-    userQuery._id=req.user._id
+    userQuery.id=req.user.id
   }
  
   if (typeof isActive !== 'undefined') {
@@ -54,24 +45,18 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 }
 
   const users = await User.find(userQuery).lean();
-  if (!users) {
-    return next(new AppError('No users found', 404));
-  }
+  if (!users)  return next(new AppError('No users found', 404));
 
-  let activeUsers,deactiveUsers,blockedUsers,adminUsers,brokerUsers,buyerUsers,SellerUsers,GuestUsers=0
+  let activeUsers,deactiveUsers,adminUsers=0
 
   // Format createdAt and updatedAt for each user
   const formattedUsers = users.map(user => {
-    if (user.isActive && user.role ===!"SuperAdmin"|| user.role ===!"Admin") activeUsers++;
+    if (user.isActive&&user.role ===!"Admin") activeUsers++;
     if (!user.isActive) deactiveUsers++;
     if (!user.isBlocked) blockedUsers++;
-    if (["SuperAdmin", "Admin"].includes(user.role)) adminUsers++;
-    if(user.role ==="Broker") brokerUsers++;
-    if(user.role ==="Buyer") buyerUsers++;
-    if(user.role ==="Seller") SellerUsers++;
-    if(user.role ==="Broker") brokerUsers++;
-    if(user.role ==="Guest") GuestUsers++;
-    
+    if (user.role==="Admin") adminUsers++;
+    if(user.role ==="doctor") doctorUsers++;
+    if(user.role ==="user") activeUsers++;
     return {
       ...user,
       formattedCreatedAt: user.createdAt ? formatDate(user.createdAt) : null,
