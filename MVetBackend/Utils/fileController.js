@@ -227,32 +227,30 @@ exports.deleteFile = async (filePath) => {
 // };
 // ;
 
-exports.processFilesWithUrl = (req, files = [], folder = 'documents') => {
-  // console.log("processFilesWithUrl", files);
-  // console.log("protocol", req.protocol);
-  // console.log("host", req.get("host"));
+// exports.processFilesWithUrl = (req, files = [], folder = 'documents') => {
+//   // console.log("processFilesWithUrl", files);
+//   // console.log("protocol", req.protocol);
+//   // console.log("host", req.get("host"));
   
-  return files.map(file => {
-    const url = `${req.protocol}://${req.get('host')}/uploads/${folder}/${file.fileName}`;
-    //const url = `${req.protocol}://${req.get('host')}/${path.posix.join(__dirname,"..",'uploads', folder, file.fileName)}`;
-    console.log("url", url);
-    return {
-      ...file,
-      url
-    };
-  });
-};
+//   return files.map(file => {
+//     const url = `${req.protocol}://${req.get('host')}/uploads/${folder}/${file.fileName}`;
+//     //const url = `${req.protocol}://${req.get('host')}/${path.posix.join(__dirname,"..",'uploads', folder, file.fileName)}`;
+//     console.log("url", url);
+//     return {
+//       ...file,
+//       url
+//     };
+//   });
+// };
 
 exports.processUploadFilesToSave = async (req,files, body={},type={},existingModel = null) => {
   let profileImage = null;
-  const defaultFileName = 'default.png';
   const basePath=`${req.protocol}://${req.get('host')}/uploads/`;
+  console.log("basepPath",basePath)
   if (files.profileImage && files.profileImage.length > 0) {
     profileImage = files?.profileImage?.[0]?.filename;
     profileImage=`${basePath}documents/${profileImage}`
-  } else {
-    profileImage = `${basePath}${defaultFileName}`; // full URL to default image
-  }
+  } 
 
   if (existingModel && profileImage) {
     if (existingModel.profileImage && existingModel.profileImage !== 'default.png') {
@@ -263,6 +261,7 @@ exports.processUploadFilesToSave = async (req,files, body={},type={},existingMod
     }
   }
 
+  console.log("ppp",profileImage)
   const newImages = files?.images
     ? files.images.map((file,index) => ({
       fileName: file.filename,

@@ -46,7 +46,10 @@ exports.signup = catchAsync(async (req, res, next) => {
   }
 
   const { profileImage, documents } = await processUploadFilesToSave(req, req.files, req.body)
-
+  if(!profileImage){
+  const profileImage=`${req.protocol}://${req.get('host')}/uploads/default.png`;// full URL to default image
+  }
+  
   const existingUser = await User.findOne({ where: { phoneNumber } });
   if (existingUser) {
     if (req.files) deleteFile(req.files.path);
@@ -121,10 +124,11 @@ exports.authenticationJwt = catchAsync(async (req, _, next) => {
   if (!token) {
     return next(new AppError('Unauthorized: No token provided', 401));
   }
-
+  console.log("tokenn",token)
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("decode",decoded)
   } catch (err) {
     console.error('❌ Invalid or expired JWT:', err.message);
     return next(new AppError('Session expired or invalid token', 401));

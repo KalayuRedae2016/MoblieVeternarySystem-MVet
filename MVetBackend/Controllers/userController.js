@@ -9,7 +9,7 @@ const AppError = require("../Utils/appError")
 require('dotenv').config();
 const { formatDate } = require("../utils/formatDate")
 
-const {processFileData,createMulterMiddleware, processUploadFiles} = require('../Utils/fileController');
+const {processFileData,createMulterMiddleware, processUploadFiles, processUploadFilesToSave, processFilesWithUrl} = require('../Utils/fileController');
 
 // Configure multer for user file uploads
 const userFileUpload = createMulterMiddleware(
@@ -128,8 +128,6 @@ exports.getUser = catchAsync(async (req, res, next) => {
   const formattedCreatedAt = user.createdAt ? formatDate(user.createdAt) : null;
   const formattedUpdatedAt = user.updatedAt ? formatDate(user.updatedAt) : null;
   
-  // const { imageData, attachmentsData } = await processFileData(user,"user");
-
   res.status(200).json({
     status: 1,
     message: `Profile fetched successfully!`,
@@ -138,59 +136,79 @@ exports.getUser = catchAsync(async (req, res, next) => {
       formattedCreatedAt,
       formattedUpdatedAt
     },
-    // imageData,
-    // attachmentsData
   });
 });
 
+exports.updateUserProfile = catchAsync(async (req, res, next) => {
+  const targetUserId = req.params.userId;
 
-exports.updateUserProfile = catchAsync(async (req, res,next) => {
-    const userId = req.params.id;
-    const existingUser = await User.findById(userId);
+  // Role-based access control
+  if (req.user.role === 'user' && req.user.id !== targetUserId) {
+    return next(new AppError("Access denied: You can only update your own profile", 403));
+  }
 
-    if (!existingUser) {
-      return next(new AppError("User is not Found",400))
+  if (req.user.role === 'doctor') {
+    if (req.user.id !== targetUserId) {
+      const targetUser = await User.findByPk(targetUserId);
+      if (!targetUser || targetUser.role !== 'user') {
+        return next(new AppError("Access denied: Doctors can only update their own or user (patient) profiles", 403));
+      }
     }
-    const originalUserData = JSON.parse(JSON.stringify(existingUser));
+  }
 
-    let updateData ={... req.body};
-    
-    const {profileImage,attachments}=await processUploadFiles(req.files,req.body,existingUser)
+  const existingUser = await User.findByPk(targetUserId);
+  if (!existingUser) {
+    return next(new AppError("User not found", 404));
+  }
+
+  const originalUserData = JSON.parse(JSON.stringify(existingUser));
   
-    existingUser.set({
-      ...req.body,
-      profileImage: profileImage || existingUser.profileImage,
-      attachments,
-    });
-    await existingUser.save();
-  const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
-  const { imageData, attachmentsData } = await processFileData(updatedUser,"user");
+  const {profileImage}= await processUploadFilesToSave(req,req.files, req.body, existingUser)
+  console.log("immgg",profileImage)
+  // Process uploads
   
+  // Merge update fields
+  const updateData = {
+    ...req.body,
+    profileImage: profileImage || existingUser.profileImage,
+  };
+
+  // Update user
+  await existingUser.update(updateData);
+
+  // Fetch latest version
+  const updatedUser = await User.findByPk(targetUserId);
+
+  // Format timestamps
   const formattedCreatedAt = updatedUser.createdAt ? formatDate(updatedUser.createdAt) : null;
   const formattedUpdatedAt = updatedUser.updatedAt ? formatDate(updatedUser.updatedAt) : null;
-  
-  await logAction({
-    model: 'users',
-    action: 'Update',
-    actor: req.user && req.user.id ? req.user.id : 'system',
-    description: 'User Profie Updated',
-    data: { userId: updatedUser.id,BeforeUpdate:originalUserData,updatedData:existingUser},
-    ipAddress: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
-    severity: 'info',
-    sessionId: req.session?.id || 'generated-session-id',
-  });
 
-    res.status(200).json({
-      status: 1,
-      message: `${updatedUser.fullName} updated successfully`,
-      updatedUser: {
-        ...updatedUser._doc,
-        formattedCreatedAt,
-        formattedUpdatedAt
-      },
-      imageData,
-      attachmentsData, // Add the attachments data in the response
-    });
+  // // Log update
+  // await logAction({
+  //   model: 'users',
+  //   action: 'Update',
+  //   actor: req.user?.id || 'system',
+  //   description: 'User profile updated',
+  //   data: {
+  //     userId: updatedUser.id,
+  //     beforeUpdate: originalUserData,
+  //     updatedData: updateData,
+  //   },
+  //   ipAddress: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
+  //   severity: 'info',
+  //   sessionId: req.session?.id || 'generated-session-id',
+  // });
+
+  res.status(200).json({
+    status: 1,
+    message: `${updatedUser.name} updated successfully`,
+    updatedUser: {
+      ...updatedUser.toJSON(),
+      formattedCreatedAt,
+      formattedUpdatedAt,
+    },
+   
+  });
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
