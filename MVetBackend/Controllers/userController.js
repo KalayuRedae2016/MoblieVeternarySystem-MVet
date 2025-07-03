@@ -1,11 +1,12 @@
-const User = require('./../Models/userModel');
-const Log = require('./../Models/logModel');
-const validator = require('validator');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const db = require('../Models');
+const { Op } = require('sequelize');
+const User = db.User;
 
-const { sendEmail } = require('../Utils/email');
-const {logAction}=require("../Utils/logUtils")
-const catchAsync = require('../Utils/catchAsync');
-const AppError = require('../Utils/appError');
+const catchAsync = require("../Utils/catchAsync")
+const AppError = require("../Utils/appError")
+require('dotenv').config();
 const { formatDate } = require("../utils/formatDate")
 
 const {processFileData,createMulterMiddleware, processUploadFiles} = require('../Utils/fileController');
@@ -30,35 +31,50 @@ const filterObj = (obj, ...allowedFields) => {
 exports.uploadUserFile = userFileUpload.single('file');
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-   console.log("requsted User",req.user.role)
+  console.log("Requested User Role:", req.user.role);
 
   const { isActive } = req.query;
   let userQuery = {};
-  if(req.user.role==="Admin"){
-    userQuery.role={$in:["Admin"]}
-  }else{
-    userQuery.id=req.user.id
+
+  if (req.user.role === "admin") {
+    userQuery.role = "admin";
+  } else if (req.user.role === "doctor") {
+    userQuery.role = "doctor";
+  } else {
+    return next(new AppError("No Access/Authorized", 403));
   }
- 
-  if (typeof isActive !== 'undefined') {
-  userQuery.isActive = isActive === 'true'; // supports ?isActive=true or false
+
+ if (typeof isActive !== 'undefined') {
+  if (isActive === 'true' || isActive === true || isActive === 1 || isActive === '1') {
+    userQuery.isActive = true;
+  } else {
+  userQuery.isActive = false;
+  }
 }
 
-  const users = await User.find(userQuery).lean();
-  if (!users)  return next(new AppError('No users found', 404));
+  console.log("UserQuery",userQuery)
+ const users = await User.findAll({ where: userQuery });
 
-  let activeUsers,deactiveUsers,adminUsers=0
+  if (!users || users.length === 0) {
+    return next(new AppError('No users found', 404));
+  }
 
-  // Format createdAt and updatedAt for each user
+  // Initialize counters
+  let activeUsers = 0,
+      deactiveUsers = 0,
+      activeDoctors = 0,
+      deactiveDoctors = 0,
+      adminUsers = 0;
+
   const formattedUsers = users.map(user => {
-    if (user.isActive&&user.role ===!"Admin") activeUsers++;
-    if (!user.isActive) deactiveUsers++;
-    if (!user.isBlocked) blockedUsers++;
-    if (user.role==="Admin") adminUsers++;
-    if(user.role ==="doctor") doctorUsers++;
-    if(user.role ==="user") activeUsers++;
+    if (user.isActive && user.role === "user") activeUsers++;
+    if (!user.isActive && user.role === "user") deactiveUsers++;
+    if (user.isActive && user.role === "doctor") activeDoctors++;
+    if (!user.isActive && user.role === "doctor") deactiveDoctors++;
+    if (user.role === "admin") adminUsers++;
+
     return {
-      ...user,
+      ...user.toJSON(),
       formattedCreatedAt: user.createdAt ? formatDate(user.createdAt) : null,
       formattedUpdatedAt: user.updatedAt ? formatDate(user.updatedAt) : null,
     };
@@ -69,37 +85,56 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     totalUsers: users.length,
     activeUsers,
     deactiveUsers,
-    blockedUsers,
-    buyerUsers,
-    SellerUsers,
-    GuestUsers,
+    activeDoctors,
+    deactiveDoctors,
+    adminUsers,
     users: formattedUsers
   });
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {
-  console.log("herre")
-  const userId = req.params.id;
-  const user = await User.findById(userId);
+  let userId = req.user.id; // default: self-access
+
+  // Admins can access any user
+  if (req.user.role === "admin") {
+    userId = req.params.userId;
+  }
+
+  // Doctors can access- their own data, users' (patients') data,not other doctors/admins
+  if (req.user.role === "doctor") {
+    const targetUserId = req.params.userId;
+    if (targetUserId && targetUserId !== req.user.id) {
+      const targetUser = await User.findByPk(targetUserId);
+      if (!targetUser) {
+        return next(new AppError('User not found', 404));
+      }
+
+      // Doctors can only view users (patients), not other doctors or admins
+      if (targetUser.role !== "user") {
+        return next(new AppError("Access denied: You can only view user (patient) profiles.", 403));
+      }
+
+      userId = targetUserId;
+    }
+  }
+
+  // Normal users can only view their own data (already set above)
+  const user = await User.findByPk(userId);
+
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-  const {completionRate,nonCompletionRate,filledFields,missingFields} = user.getProfileCompletionRate();
 
-  // const { imageData, attachmentsData } = await processFileData(user,"user");
-  
   const formattedCreatedAt = user.createdAt ? formatDate(user.createdAt) : null;
   const formattedUpdatedAt = user.updatedAt ? formatDate(user.updatedAt) : null;
+  
+  // const { imageData, attachmentsData } = await processFileData(user,"user");
 
   res.status(200).json({
     status: 1,
-    message: completionRate < 100 ? `Please complete your profile:>${missingFields}` : 'Profile completed!',
+    message: `Profile fetched successfully!`,
     data: {
-      ...user._doc,
-      pofileCompletionRate: `${completionRate}%`,
-      notProfileCompletionRate: `${nonCompletionRate}%`,
-      filledFields,
-      missingFields,
+      ...user.toJSON(),
       formattedCreatedAt,
       formattedUpdatedAt
     },
@@ -107,6 +142,7 @@ exports.getUser = catchAsync(async (req, res, next) => {
     // attachmentsData
   });
 });
+
 
 exports.updateUserProfile = catchAsync(async (req, res,next) => {
     const userId = req.params.id;

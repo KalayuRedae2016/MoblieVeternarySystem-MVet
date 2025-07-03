@@ -1,6 +1,5 @@
 const nodemailer = require('nodemailer');
 const catchAsync = require('./catchAsync');
-
 exports.sendEmail = catchAsync(async (options) => {
   // Configure the transporter for Gmail
   const transporter = nodemailer.createTransport({
@@ -37,28 +36,31 @@ exports.sendEmail = catchAsync(async (options) => {
 });
 
 exports.sendWelcomeEmail = async (user, password) => {
-  const subject = defaultVariables.subject;
+  // const subject = defaultVariables.subject;
+  const subject='Welcome to Our Mobile Veternary Services, Grand Technology System !'
   const email = user.email;
   const loginLink = process.env.NODE_ENV === 'development' 
-    ? defaultVariables.localURL 
-    : defaultVariables.remoteUrl;
+    ? 'http://localhost:8085'
+    : 'https://mvet.com';
 
-  const message = `Hi ${user.fullName},
+  const message = `Hi ${user.name},
   
   Welcome to Our Platform! We're excited to have you on board.
   
   Here are your account details:
-  - User Code/Name: ${user.userCode}
+  - FullName: ${user.name}
   - Email: ${email}
   - Password: ${password}
   
   Login here: ${loginLink}
   
-  Please visit our platform to explore and start using our services.
+  Please visit our platform to explore our Mobile Veternary Services.
   If you have any questions or need assistance, feel free to contact our support team.
   
   Best regards,
-  The Bana Marketing Group Team`;
+  The Mobile Veternary Services Group Team`;
 
-  await sendEmail({ email, subject, message });
+  // console.log("subb",subject,email,message)
+  await exports.sendEmail({ email, subject, message });
+
 };

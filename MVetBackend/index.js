@@ -65,7 +65,9 @@ if (process.env.NODE_ENV === 'production') {
 app.use(cors(corsOptions));
 
 // Serving static files
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Security HTTP Headers
 app.use(helmet());

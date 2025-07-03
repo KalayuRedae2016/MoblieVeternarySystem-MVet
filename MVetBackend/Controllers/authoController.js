@@ -1,27 +1,28 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../Models');
+const { Op } = require('sequelize');
 const User = db.User;
 
-const catchAsync=require("../Utils/catchAsync")
-const AppError=require("../Utils/appError")
+const catchAsync = require("../Utils/catchAsync")
+const AppError = require("../Utils/appError")
 require('dotenv').config();
 
 
-const { sendEmail,sendWelcomeEmail} = require('../Utils/email');
+const { sendEmail, sendWelcomeEmail } = require('../Utils/email');
 // const {logAction}=require("../Utils/logUtils")
-const { deleteFile, createMulterMiddleware,processUploadFilesToSave} = require('../Utils/fileController');
+const { deleteFile, createMulterMiddleware, processUploadFilesToSave } = require('../Utils/fileController');
 
 const signInToken = (user) => {
- const payload = { id: user.id, role: user.role };
-  return jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRES_IN});
+  const payload = { id: user.id, role: user.role };
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 };
 
 //attachements=documents and images
 const attachments = createMulterMiddleware(
   'uploads/documents', // Destination folder
   'doc', // Prefix for filenames
-  ['image/jpeg','image/jpg','image/png', 'image/gif', 'application/pdf', 'application/msword'] // Allowed types
+  ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf', 'application/msword'] // Allowed types
 );
 
 exports.uploadFilesMiddleware = attachments.fields([
@@ -31,44 +32,62 @@ exports.uploadFilesMiddleware = attachments.fields([
 ]);
 
 // Signup controller
-exports.signup = catchAsync(async (req, res,next) => {
-    const { name, email, password, role } = req.body;
-    //insert phoneNumber
-    if (!name || !email || !password || !role) {
-        return next(new AppError("All Fields are required",404))
+exports.signup = catchAsync(async (req, res, next) => {
+  console.log("registration request", req.body)
+  console.log("profileImages", req.files)
+  const { name, phoneNumber, role, password, email, address, licenseNumber, education, specialization } = req.body;
+  if (!name || !phoneNumber || !role) {
+    return next(new AppError("missing required Fields(name,phone or role)", 404))
+  }
+  if (role != "user") {
+    if (!licenseNumber || !education || !specialization) {
+      return next(new AppError("Missing requred filds for Physician or Admin"))
     }
+  }
 
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) return(next(new AppError("Email already in use",404)))
-    
-    const hashedPassword = await bcrypt.hash(password, 12);// Hash password
+  const { profileImage, documents } = await processUploadFilesToSave(req, req.files, req.body)
 
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role
-    });
+  const existingUser = await User.findOne({ where: { phoneNumber } });
+  if (existingUser) {
+    if (req.files) deleteFile(req.files.path);
+    return (next(new AppError("PhoneNumber already in use", 404)))
+  }
 
+  const hashedPassword = await bcrypt.hash(password, 12);// Hash password
 
-    // Return success response
-    res.status(200).json({
-      message: 'User registered successfully.',
-      data:newUser,
-    });
+  const newUser = await User.create({
+    name,
+    phoneNumber,
+    role,
+    address,
+    email,
+    licenseNumber: role !== "user" ? licenseNumber : null,
+    education: role !== "user" ? education : null,
+    specialization: role !== "user" ? specialization : null,
+    password: hashedPassword,
+    profileImage: profileImage,
+    // isActive:true
+  });
+  //await logAction
+  await sendWelcomeEmail(newUser, password)
+
+  // Return success response
+  res.status(200).json({
+    message: 'User registered successfully.',
+    data: newUser,
+  });
 });
 
-
 exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { phoneNumber, password } = req.body;
   console.log("Request body:", req.body);
 
   // Input validation
-  if (!email) return next(new AppError("Please provide valid phone number", 404));
+  if (!phoneNumber) return next(new AppError("Please provide valid phone number", 404));
   if (!password) return next(new AppError("Please provide valid password", 404));
 
   // Find user by email
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({ where: { phoneNumber } });
 
   if (!user) {
     return next(new AppError("Invalid credentials. Please try again or reset your password", 401));
@@ -77,29 +96,25 @@ exports.login = catchAsync(async (req, res, next) => {
   // Compare password
   const correct = await bcrypt.compare(password, user.password);
 
-  if (!correct) {
-    return next(new AppError("Invalid or incorrect password", 401));
-  }
+  if (!correct) return next(new AppError("Invalid or incorrect password", 404));
 
-  const token = signInToken(user.id); // Assuming user.id is the PK
-
+  const token = signInToken(user);
+  //console.log("LoggedInUser",user)
   res.status(200).json({
     status: 1,
     token,
     user,
-    // message: user.changePassword
-    //   ? 'Login successful, but you must change your password.'
-    //   : 'Login successful.',
-    // changePassword: user.changePassword
+    changePassword: user.changePassword,
+    message: user.changePassword
+      ? 'Login successful, but you must change your password.'
+      : 'Login successful.',
   });
 });
 
+
 exports.authenticationJwt = catchAsync(async (req, _, next) => {
   let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (req.headers.authorization &&req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 
@@ -107,23 +122,28 @@ exports.authenticationJwt = catchAsync(async (req, _, next) => {
     return next(new AppError('Unauthorized: No token provided', 401));
   }
 
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.id);
-    if (!user) {
-      return next(new AppError('The user belonging to this token no longer exists', 404));
-    }
-    // Attach the user to the request object for further use in the route handler
-    req.user = user;  // You can also pass only selected fields like { id: decoded.id, role: decoded.role }
-    next();
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
+    console.error('❌ Invalid or expired JWT:', err.message);
     return next(new AppError('Session expired or invalid token', 401));
   }
+
+  const user = await User.findByPk(decoded.id);
+  if (!user) {
+    console.warn('⚠️ User not found for ID:', decoded.id);
+    return next(new AppError('The user belonging to this token no longer exists', 404));
+  }
+
+  req.user = user;
+  next();
 });
 
 exports.requiredRole = (requiredrole) => {
   return async (req, res, next) => {
-   const userRole=req.user.role
+    console.log("loggedInRole",req.user.role)
+    const userRole = req.user.role
     if (userRole !== requiredrole) {
       return next(new AppError('Access Denied', 404));
     }
@@ -131,36 +151,34 @@ exports.requiredRole = (requiredrole) => {
   };
 };
 exports.forgetPassword = catchAsync(async (req, res, next) => {
-  console.log("requested body",req.body)
-  const {email}=req.body
-  const user = await User.findOne({ email});
+  console.log("requested body", req.body)
+  const { email } = req.body
+  const user = await User.findOne({ where: { email } });
   if (!user) {
     return next(new AppError('There is no User with the email', 404));
   }
   // console.log(user)
 
-  const resetOTPCode=user.createPasswordResetOTP()
-  user.passwordResetOTP = resetOTPCode;
-  user. passwordResetOTPExpires = Date.now() + 10 * 60 * 1000; // Expires in 10 minutes
-  console.log("resetOtpCode",resetOTPCode)
-  console.log("resetOtpcode users",user.passwordResetOTP)
-  await user.save(); // save the update document reset token & time expiration into database
-  //console.log(`Resettoemail:`, resetToken);
+  const resetOTPCode = user.createPasswordResetOTP()
+  await user.save();
+  console.log("resetOtpCode", resetOTPCode)
+
   try {
     const email = user.email;
-    const subject = 'Password Reset Verification Code'; 
+    const subject = 'Password Reset Verification Code';
     const message = `Your OTP code for password reset is: ${resetOTPCode}.\nIt will expire in 10 minutes.\nIf you didn't request this, please ignore the message.`;
-    console.log(email,subject,message)
+    console.log(email, subject, message)
 
     await sendEmail({ email, subject, message });
     res.status(200).json({
       status: 1,
+      passwordResetOTP: resetOTPCode,
       message: 'Reset token Sent to Email Succeffully',
     });
   } catch (err) {
     //console.log(err);
     user.passwordResetOTP = undefined;
-    user. passwordResetOTPExpires = undefined;
+    user.passwordResetOTPExpires = undefined;
     await user.save();
 
     return next(
@@ -168,24 +186,24 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
   }
 });
 exports.verifyOTP = catchAsync(async (req, res, next) => {
-  const { email, passwordResetOTPCode } = req.body;
-
   console.log("Incoming body:", req.body);
-  console.log("Type of Email:", typeof email);
-  console.log("Type of passwordResetOTPCode:", typeof passwordResetOTPCode);
 
-  const user = await User.findOne({
-    email,
-    passwordResetOTP: passwordResetOTPCode,
-     passwordResetOTPExpires: { $gt: Date.now() }
-  });
-
-  if (!user) {
-    return next(new AppError('Invalid or expired OTP code.', 400));
+  const { email, passwordResetOTP } = req.body;
+  if (!email || !passwordResetOTP) {
+    return next(new AppError('Email and OTP code are required.', 400));
   }
 
-  user.passwordResetOTP = undefined;
-  user. passwordResetOTPExpires = undefined;
+  const user = await User.findOne({
+    where: { email, passwordResetOTP, passwordResetOTPExpires: { [Op.gt]: new Date() } }
+  });
+
+  console.log("user", user)
+  if (!user) {
+    return next(new AppError('Invalid or expired OTP code.', 404));
+  }
+
+  user.passwordResetOTP = null;
+  user.passwordResetOTPExpires = null;
   await user.save();
 
   res.status(200).json({
@@ -195,23 +213,24 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  console.log("Incoming body:", req.body);  
-  const {email,newPassword}=req.body
-  
+  console.log("Incoming body:", req.body);
+  const { email, newPassword } = req.body
+
   const user = await User.findOne({ email });
   if (!user) {
     return next(new AppError('User is not found.', 404));
   }
-  
-  user.password = newPassword;
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+  user.password = hashedNewPassword;
   await user.save();
 
-  const token = signInToken(user._id);
+  const token = signInToken(user);
 
   res.status(200).json({
     status: 1,
-    user:user,
-    userId: user._id,
+    user: user,
+    userId: user.id,
     role: user.role,
     token: token,
     message: "Password Reseted Succeffully",
@@ -220,7 +239,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
 exports.resetPasswordByAdmin = catchAsync(async (req, res, next) => {
   const userId = req.params.userId;
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   console.log("reseted user", user);
 
   if (!user) {
@@ -228,10 +247,9 @@ exports.resetPasswordByAdmin = catchAsync(async (req, res, next) => {
   }
 
   // Generate a new password and update the user
-  const password = await user.generateRandomPassword();
-  // user.password = await bcrypt.hash(password, 12);
-  user.password = password
-  console.log("password",password)
+  const randomPassword = user.generateRandomPassword();
+  user.password = await bcrypt.hash(randomPassword, 12);
+  console.log("password", randomPassword)
   user.changePassword = true;
   await user.save();
 
@@ -239,9 +257,9 @@ exports.resetPasswordByAdmin = catchAsync(async (req, res, next) => {
   if (!user.email) {
     return res.status(200).json({
       status: 1,
-      userId: user._id,
+      userId: user.id,
       role: user.role,
-      resetedPassword: password,
+      resetedPassword: randomPassword,
       message: 'Password reset successfully. The password will be provided by the admin. Please contact support.',
       changePassword: user.changePassword,
     });
@@ -251,14 +269,14 @@ exports.resetPasswordByAdmin = catchAsync(async (req, res, next) => {
     // Send email to user
     const subject = 'Your Password Has Been Reset';
     const email = user.email;
-    const loginLink = process.env.NODE_ENV === "development" ? "http://localhost:5173" : "https://banapvs.com";
-    const message = `Hi ${user.fullName},
+    const loginLink = process.env.NODE_ENV === "development" ? "http://localhost:8085" : "https://mvet.com";
+    const message = `Hi ${user.name},
 
         Your password has been reset by an administrator. Here are your new login credentials:
 
-      - User Code: ${user.userCode}
+      - phoneNumber: ${user.phoneNumber}
       - Email: ${user.email}
-      - Temporary Password: ${password}
+      - Temporary Password: ${randomPassword}
 
       Please log in and change your password immediately.
 
@@ -267,16 +285,16 @@ exports.resetPasswordByAdmin = catchAsync(async (req, res, next) => {
       If you did not request this change, please contact our support team.
 
       Best regards,
-      The Bana Marketing Group Team`;
+      Mobile Veternary Services Group Team`;
 
     await sendEmail({ email, subject, message });
 
     // Return response after email is sent
     return res.status(200).json({
       status: 1,
-      userId: user._id,
+      userId: user.id,
       role: user.role,
-      resetedPassword: password,
+      resetedPassword: randomPassword,
       message: 'Password reset successfully. Check your email for details.',
       changePassword: user.changePassword,
     });
@@ -288,18 +306,17 @@ exports.resetPasswordByAdmin = catchAsync(async (req, res, next) => {
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
-  const userId= req.params.userId
-  const { currentPassword, newPassword} = req.body;
-  console.log("requested body",req.body)
-  
-  console.log("currentPassword",currentPassword)
-  console.log("newPassword",newPassword)
+  console.log("requested body", req.body)
+  // console.log("requestUsers", req.user)
+  const userId = req.user.id
+  const { currentPassword, newPassword } = req.body;
+
   // Validate if currentPassword and newPassword are provided
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: 'Please provide both current and new passwords' });
   }
-  
-  const user = await User.findById(userId).select('+password');
+
+  const user = await User.findByPk(userId)
   if (!user) {
     return res.status(404).json({ message: 'User not found' });
   }
@@ -312,24 +329,22 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   if (newPassword.length < 8) {
     return res.status(400).json({ message: 'New password must be at least 8 characters long' });
   }
-  
-  // const salt = await bcrypt.genSalt(10);// Hash the new password before saving it
-  // const hashedNewPassword = await bcrypt.hash(newPassword, salt);
-  // user.password = hashedNewPassword
-  user.password = newPassword
-  user.changePassword=false
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+  user.password = hashedNewPassword
+  user.changePassword = false
   await user.save();
 
-  await logAction({
-    model: 'users',
-    action: 'Update',
-    actor: req.user && req.user.id ? req.user.id : 'system',
-    description: 'User Password Updated',
-    data: { userId: user.id,orginalData:user.password,updatedData:req.body},
-    ipAddress: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
-    severity: 'info',
-    sessionId: req.session?.id || 'generated-session-id',
-  });
+  // await logAction({
+  //   model: 'users',
+  //   action: 'Update',
+  //   actor: req.user && req.user.id ? req.user.id : 'system',
+  //   description: 'User Password Updated',
+  //   data: { userId: user.id,orginalData:user.password,updatedData:req.body},
+  //   ipAddress: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
+  //   severity: 'info',
+  //   sessionId: req.session?.id || 'generated-session-id',
+  // });
 
   res.status(200).json({
     status: 1,
@@ -338,15 +353,19 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
 });
 
-exports.getMe=catchAsync(async(req,res,next)=>{
+exports.getMe = catchAsync(async (req, res, next) => {
+  const userId=req.user.id
+  const user=await User.findByPk(userId)
+  if(!user) return next(new AppError("No user Found",404))
   res.status(200).json({
     status: 1,
-    message: 'Commig soon update Me'
+    message: "get my Profile succefully",
+    user
   });
 })
 exports.updateMe = catchAsync(async (req, res, next) => {
   // Step 1: Fetch the user and validate existence
-  console.log("requestUser",req.user)
+  console.log("requestUser", req.user)
   const user = await User.findByPk(req.user.id);
   if (!user) {
     return next(new AppError('User not found', 404));
@@ -380,7 +399,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     // Delete the existing profile image from the server, if not default
     if (user.profileImage && user.profileImage !== 'default.png') {
       //const oldImagePath = path.join(__dirname, '..', 'uploads', 'profileImages', user.profileImage);
-      const oldImagePath =path.join(__dirname, '..', 'uploads', 'userAttachements',user.profileImage);
+      const oldImagePath = path.join(__dirname, '..', 'uploads', 'userAttachements', user.profileImage);
       deleteFile(oldImagePath);
     }
 
@@ -431,7 +450,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   );
 
   // Step 8: Revoke edit permission after successful update
-  
+
   if (!['Admin', 'SuperAdmin'].includes(user.role)) {
     user.canEditDetails = false;
   }
@@ -442,7 +461,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     action: 'Update',
     actor: req.user && req.user.id ? req.user.id : 'system',
     description: `${user.fullName} update his Profile`,
-    data: { userId: user.id,filteredBody},
+    data: { userId: user.id, filteredBody },
     ipAddress: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
     severity: 'info',
     sessionId: req.session?.id || 'generated-session-id',
@@ -455,7 +474,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   // Step 10: Send success response
   res.status(200).json({
     status: 1,
-    message:"user Updated Sucessfully",
+    message: "user Updated Sucessfully",
     updatedUser: {
       ...updatedUser._doc,
       formattedCreatedAt,

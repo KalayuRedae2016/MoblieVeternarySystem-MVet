@@ -160,8 +160,8 @@ exports.createMulterMiddleware = (destinationFolder, filenamePrefix, fileTypes) 
     console.log('File type:', file.mimetype);
     try {
       if (fileTypes.includes(file.mimetype)) {
-        console.log("requested fileType tadese", file.mimetype)
-        console.log("Allowed FileTypes kalayu", fileTypes)
+        console.log("requested fileType from Client", file.mimetype)
+        console.log("Allowed FileTypes in the system", fileTypes)
         cb(null, true); // Accept the file
       } else {
         cb(new Error('File type not allowed'), false); // Reject the file
@@ -249,7 +249,7 @@ exports.processUploadFilesToSave = async (req,files, body={},type={},existingMod
   const basePath=`${req.protocol}://${req.get('host')}/uploads/`;
   if (files.profileImage && files.profileImage.length > 0) {
     profileImage = files?.profileImage?.[0]?.filename;
-    profileImage=`${basePath}/documents${profileImage}`
+    profileImage=`${basePath}documents/${profileImage}`
   } else {
     profileImage = `${basePath}${defaultFileName}`; // full URL to default image
   }
