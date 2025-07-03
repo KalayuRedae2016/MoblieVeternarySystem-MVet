@@ -45,9 +45,9 @@ exports.signup = catchAsync(async (req, res, next) => {
     }
   }
 
-  const { profileImage, documents } = await processUploadFilesToSave(req, req.files, req.body)
+  let { profileImage, documents } = await processUploadFilesToSave(req, req.files, req.body)
   if(!profileImage){
-  const profileImage=`${req.protocol}://${req.get('host')}/uploads/default.png`;// full URL to default image
+  profileImage=`${req.protocol}://${req.get('host')}/uploads/default.png`;// full URL to default image
   }
   
   const existingUser = await User.findOne({ where: { phoneNumber } });

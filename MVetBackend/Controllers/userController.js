@@ -163,14 +163,16 @@ exports.updateUserProfile = catchAsync(async (req, res, next) => {
 
   const originalUserData = JSON.parse(JSON.stringify(existingUser));
   
-  const {profileImage}= await processUploadFilesToSave(req,req.files, req.body, existingUser)
-  console.log("immgg",profileImage)
+  let {profileImage}= await processUploadFilesToSave(req,req.files, req.body, existingUser)
+  if(!profileImage){
+    profileImage=existingUser.profileImage
+  }
   // Process uploads
   
   // Merge update fields
   const updateData = {
     ...req.body,
-    profileImage: profileImage || existingUser.profileImage,
+    profileImage
   };
 
   // Update user

@@ -175,17 +175,29 @@ exports.createMulterMiddleware = (destinationFolder, filenamePrefix, fileTypes) 
   return multer({ storage, fileFilter });
 };
 
+//it is not working on saving on updating
 exports.deleteFile = async (filePath) => {
   if (!filePath) {
-    console.error('No file path provided for deletion.');
+    console.error('[deleteFile] ❌ No file path provided.');
     return;
   }
 
   try {
-    await fs.promises.unlink(filePath); // Using fs.promises.unlink to return a promise
-    console.log('File deleted:', filePath);
+    // Optional: Normalize path for cross-platform consistency
+    const normalizedPath = path.normalize(filePath);
+
+    // Check if file exists first
+    await fs.promises.access(normalizedPath, fs.constants.F_OK);
+
+    // If exists, delete it
+    await fs.promises.unlink(normalizedPath);
+    console.log('[deleteFile] ✅ File deleted:', normalizedPath);
   } catch (err) {
-    console.error(`Failed to delete file at ${filePath}:`, err);
+    if (err.code === 'ENOENT') {
+      console.warn(`[deleteFile] ⚠️ File does not exist: ${filePath}`);
+    } else {
+      console.error(`[deleteFile] ❌ Error deleting file at ${filePath}:`, err);
+    }
   }
 };
 
@@ -243,23 +255,30 @@ exports.deleteFile = async (filePath) => {
 //   });
 // };
 
-exports.processUploadFilesToSave = async (req,files, body={},type={},existingModel = null) => {
+exports.processUploadFilesToSave = async (req, files = {}, body = {}, type = {}, existingModel = null) => {
+  files = files || {}; // ensures files is at least an empty object
+
   let profileImage = null;
   const basePath=`${req.protocol}://${req.get('host')}/uploads/`;
   console.log("basepPath",basePath)
-  if (files.profileImage && files.profileImage.length > 0) {
-    profileImage = files?.profileImage?.[0]?.filename;
-    profileImage=`${basePath}documents/${profileImage}`
-  } 
+  if (Array.isArray(files?.profileImage) && files.profileImage.length > 0) {
+    profileImage = `${basePath}documents/${files.profileImage[0].filename}`;
+  }
 
   if (existingModel && profileImage) {
-    if (existingModel.profileImage && existingModel.profileImage !== 'default.png') {
-      //const oldImagePath = path.join(__dirname, '../uploads/attachments', existingUser.profileImage);
-      const oldImagePath=path.join(__dirname, '..', 'uploads','documents',existingUser.profileImage)
-      // await deleteFile(oldImagePath);  
-      await exports.deleteFile(oldImagePath);  // Explicitly reference deleteFile using exports
+  if (existingModel.profileImage && !existingModel.profileImage.includes('default.png')) {
+    const oldImageFileName = path.basename(existingModel.profileImage); // avatar123.png
+    const oldImagePath = path.join(__dirname, '..', 'uploads', 'documents', oldImageFileName);
+
+    console.log('Trying to delete file:', oldImagePath);
+
+    try {
+      await exports.deleteFile(oldImagePath); // attempt delete
+    } catch (err) {
+      console.error('Delete failed:', err);
     }
   }
+}
 
   console.log("ppp",profileImage)
   const newImages = files?.images
