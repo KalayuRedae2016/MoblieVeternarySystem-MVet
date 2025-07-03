@@ -47,7 +47,7 @@ router.route('/:userId')
 
 
 // router.route('/active-deactive/:userId').put(userController.activateDeactiveUser);
-// router.route('/sendEmails').post(userController.sendEmailMessages)
+router.route('/sendEmails').post(userController.sendEmailMessages)
 
 
 module.exports=router

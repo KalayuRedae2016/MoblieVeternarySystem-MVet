@@ -1,7 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../Models');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
+const validator = require('validator');
 const User = db.User;
 
 const catchAsync = require("../Utils/catchAsync")
@@ -32,7 +33,6 @@ exports.uploadUserFile = userFileUpload.single('file');
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   console.log("Requested User Role:", req.user.role);
-
   const { isActive } = req.query;
   let userQuery = {};
 
@@ -214,77 +214,79 @@ exports.updateUserProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  const deletedUser = await User.findByIdAndDelete(req.params.id)
-  if (!deletedUser) {
-    return next(new AppError("user entry not found", 404))
-  }
+  const userId = parseInt(req.params.userId, 10); // ensure it's an integer
 
-  await logAction({
-    model: 'users',
-    action: 'Delete',
-    actor: req.user && req.user.id ? req.user.id : 'system',
-    description: 'User Profie Deleted',
-    data: { userId: deletedUser.id,deletedUser},
-    ipAddress: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
-    severity: 'info',
-    sessionId: req.session?.id || 'generated-session-id',
-  });
+  const deletedCount = await User.destroy({ where: { id: userId } });
+
+  if (deletedCount === 0) {
+    return next(new AppError("User entry not found", 404));
+  }
 
   res.status(200).json({
     status: 'success',
-    //data: null,
-    message: `User Deleted`
+    message: 'User deleted successfully',
   });
 });
+
 exports.deleteUsers = catchAsync(async (req, res, next) => {
-  const deletedUsers= await User.deleteMany({});  // Deletes all documents
-  if (deletedUsers.deletedCount === 0) {
-    return next(new AppError("No User entries found to delete", 404));
+  const deletedCount = await User.destroy({
+    where: {}, // No condition = delete all rows
+  });
+
+  if (deletedCount === 0) {
+    return next(new AppError("No user entries found to delete", 404));
   }
+
+  //🧹 Delete profile image from disk
+  //🧹 log action
   res.status(200).json({
     status: 'success',
-    message: `${deletedUsers.deletedCount} Users Deleted`
+    message: `${deletedCount} users deleted`,
   });
 });
 
 exports.sendEmailMessages = catchAsync(async (req, res, next) => {
   const { emailList, subject, message } = req.body;
 
-  // Ensure subject and message are provided
   if (!subject && !message) {
     return next(new AppError('Subject and message are required', 400));
   }
 
-  // Validate emailList is an array if provided
   if (emailList && !Array.isArray(emailList)) {
     return next(new AppError('emailList must be an array', 400));
   }
 
   let users;
+
   if (emailList && emailList.length > 0) {
-    // Validate and filter emails in emailList
     const validEmails = emailList.filter(email => validator.isEmail(email));
     if (validEmails.length === 0) {
       return next(new AppError('No valid email addresses found in the provided list', 400));
     }
-    users = await User.find({ email: { $in: validEmails } }, { email: 1, fullName: 1 }).sort({ createdAt: 1 });
+
+    users = await User.findAll({
+      where: {email: {[Op.in]: validEmails}},
+      attributes: ['email', 'name'],
+      order: [['createdAt', 'ASC']]
+    });
   } else {
-    // Fetch all users with valid emails
-    users = await User.find({ email: { $ne: null } }, { email: 1, fullName: 1 }).sort({ createdAt: 1 });
+    users = await User.findAll({
+      where: {email: {[Op.ne]: null}},
+      attributes: ['email', 'name'],
+      order: [['createdAt', 'ASC']]
+    });
   }
 
-  // Handle case where no users are found
   if (!users || users.length === 0) {
     return next(new AppError('No users found with valid email addresses', 404));
   }
 
-  // Prepare email sending promises
   const emailPromises = users.map(user => {
-    const emailSubject = subject || 'Welcome to Our Platform, Bana Mole Marketing Group!';
+    const emailSubject = subject || 'Welcome to Our Platform, Grand Technology System!';
     const emailMessage = message
-      ? `Dear ${user.fullName},\n\n${message}`
-      : `Hi ${user.fullName},\n\nWelcome to Our Platform! We're excited to have you on board.\n\nPlease use the following link to access our platform:\n- Login Link: ${
-          process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : 'https://banapvs.com'
+      ? `Dear ${user.name},\n\n${message}`
+      : `Hi ${user.name},\n\nWelcome to Our Platform! We're excited to have you on board.\n\nPlease use the following link to access our platform:\n- Login Link: ${
+          process.env.NODE_ENV === 'development' ? 'http://localhost:8085' : 'https://mvet.com'
         }\n\nIf you have any questions or need assistance, feel free to contact our support team.\n\nBest regards,\nThe Bana Marketing Group Team`;
 
     return sendEmail({ email: user.email, subject: emailSubject, message: emailMessage });
