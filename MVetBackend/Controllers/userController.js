@@ -10,7 +10,7 @@ const AppError = require("../Utils/appError")
 require('dotenv').config();
 const { formatDate } = require("../utils/formatDate")
 
-const {processFileData,createMulterMiddleware, processUploadFiles, processUploadFilesToSave, processFilesWithUrl} = require('../Utils/fileController');
+const {createMulterMiddleware,processUploadFilesToSave} = require('../Utils/fileController');
 
 // Configure multer for user file uploads
 const userFileUpload = createMulterMiddleware(
