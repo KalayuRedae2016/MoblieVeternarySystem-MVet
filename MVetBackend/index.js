@@ -13,6 +13,7 @@ const globalErrorHandler = require('./Controllers/errorController');
 
 const userRouter = require('./Routes/userRoutes');
 const animalRouter=require("./Routes/animalRoutes")
+const medicalVisitRouter = require('./Routes/medicalVisitsRoutes');
 
 const app = express(); //start Express app
 
@@ -50,7 +51,7 @@ app.set('views', path.join(__dirname, 'views'));
 let corsOptions;
 if (process.env.NODE_ENV === 'production') {
   corsOptions = {
-    origin: ['http://49.13.235.6','http://banapvs.com','https://banapvs.com','https://49.13.235.6',null], // Allowed origin for production
+    origin: ['http://mvet.com','https://mvet.com',null], // Allowed origin for production
     credentials: true, // Enable credentials like cookies
     methods: ['GET', 'POST', 'PUT', 'PATCH','DELETE','OPTIONS'], // Add allowed methods
   };
@@ -124,6 +125,7 @@ app.use((req, res, next) => {
 //  #2 Routers
 app.use('/api/mvet/users',userRouter);
 app.use('/api/mvet/animals',animalRouter);
+app.use('/api/mvet/medicalVisits', medicalVisitRouter); 
 
 
 // Catch-all route handler for undefined routes

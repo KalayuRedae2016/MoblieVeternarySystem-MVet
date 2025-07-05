@@ -95,12 +95,20 @@ exports.getAnimalById = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    data: { animal }
+    message:"Animal is Feched Successfully",
+    data: animal
   });
 });
 
 // Update an animal
 exports.updateAnimal = catchAsync(async (req, res, next) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return next(new AppError('No data provided to update', 400));
+  }
+  if (req.body.ownerId || req.body.identificationMark) {
+    return next(new AppError('No Permitted the fields to update', 400));
+  }
+  console.log("this is update animal request",req.body)
   const [updatedCount] = await Animal.update(req.body, {
     where: { id: req.params.id }
   });
@@ -113,6 +121,7 @@ exports.updateAnimal = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
+    message: "Animal is Updated Successfully",
     data: { animal: updatedAnimal }
   });
 });
@@ -124,6 +133,26 @@ exports.deleteAnimal = catchAsync(async (req, res, next) => {
   });
 
   if (deletedCount === 0) {
+    return next(new AppError('No animal found to delete', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Animal deleted successfully'
+  });
+});
+
+//  Delete all animals
+exports.deleteAnimal = catchAsync(async (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return next(new AppError('Only admins can delete all animals', 403));
+  }
+  const deletedAnimals = await Animal.destroy({
+    where: {},
+    truncate:false
+  });
+
+  if (deletedAnimals=== 0) {
     return next(new AppError('No animal found to delete', 404));
   }
 

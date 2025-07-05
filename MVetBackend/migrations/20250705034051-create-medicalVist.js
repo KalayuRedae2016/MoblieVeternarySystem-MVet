@@ -9,7 +9,7 @@ module.exports = {
       physicianId: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'Users', key: 'id' }, onDelete: 'CASCADE', onUpdate: 'CASCADE' },
       visitDate: { type: Sequelize.DATE, defaultValue: Sequelize.fn('NOW') },
       
-      ownerComplaint: { type: Sequelize.STRING, allowNull: true },
+      ownerComplaint: { type: Sequelize.TEXT, allowNull: true },
       symptoms: { type: Sequelize.TEXT, allowNull: true },
       tentativeDiagnosis: { type: Sequelize.TEXT, allowNull: true },
       labResults: { type: Sequelize.JSON, allowNull: true },

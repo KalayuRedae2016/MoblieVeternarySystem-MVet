@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     visitDate: { type: DataTypes.DATEONLY, defaultValue: DataTypes.NOW },
 
-    ownerComplaint: { type: DataTypes.STRING, allowNull: true },
+    ownerComplaint: { type: DataTypes.TEXT, allowNull: true },
     symptoms: { type: DataTypes.TEXT, allowNull: true },
     tentativeDiagnosis: { type: DataTypes.TEXT, allowNull: true },
     labResults: { type: DataTypes.JSON, allowNull: true },

@@ -25,13 +25,13 @@ router.patch('/resetPassword',authoController.resetPassword);
 // // Protect all routes after this middleware
 
 
-router.use(authoController.authenticationJwt);
+//router.use(authoController.authenticationJwt);
 
 router.patch('/updatePassword',authoController.updatePassword);
 //router.patch('/getMe',authoController.uploadFilesMiddleware,authoController.getMe);
 // router.patch('/updateMe',authoController.uploadFilesMiddleware,authoController.updateMe);
 
-router.use(authoController.requiredRole('admin'));
+//router.use(authoController.requiredRole('admin'));
 
 router.patch('/resetPasswordByAdmin/:userId',authoController.resetPasswordByAdmin);
 // router.patch('/edituserPermission',userController.toggleEdiUserPermission);

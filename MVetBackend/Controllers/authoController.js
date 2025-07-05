@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../Models');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const User = db.User;
 
 const catchAsync = require("../Utils/catchAsync")
@@ -39,7 +39,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   if (!name || !phoneNumber || !role) {
     return next(new AppError("missing required Fields(name,phone or role)", 404))
   }
-  if (role != "user") {
+  if (role=== "doctor") {
     if (!licenseNumber || !education || !specialization) {
       return next(new AppError("Missing requred filds for Physician or Admin"))
     }
@@ -114,7 +114,6 @@ exports.login = catchAsync(async (req, res, next) => {
   });
 });
 
-
 exports.authenticationJwt = catchAsync(async (req, _, next) => {
   let token;
   if (req.headers.authorization &&req.headers.authorization.startsWith('Bearer')) {
@@ -144,13 +143,16 @@ exports.authenticationJwt = catchAsync(async (req, _, next) => {
   next();
 });
 
-exports.requiredRole = (requiredrole) => {
+exports.requiredRole = (...allowedRoles) => {
+  console.log("allowedRoles", allowedRoles)
   return async (req, res, next) => {
-    console.log("loggedInRole",req.user.role)
-    const userRole = req.user.role
-    if (userRole !== requiredrole) {
-      return next(new AppError('Access Denied', 404));
+    const userRole = req.user?.role;
+    console.log("Logged-in role:", userRole);
+
+    if (!allowedRoles.includes(userRole)) {
+      return next(new AppError('Access Denied', 403));
     }
+
     next();
   };
 };
@@ -220,7 +222,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   console.log("Incoming body:", req.body);
   const { email, newPassword } = req.body
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ where: { email: email } });
   if (!user) {
     return next(new AppError('User is not found.', 404));
   }
@@ -230,7 +232,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   const token = signInToken(user);
-
+console.log("userrr", user)
   res.status(200).json({
     status: 1,
     user: user,
