@@ -280,39 +280,26 @@ exports.processUploadFilesToSave = async (req, files = {}, body = {}, type = {},
   }
 }
 
-  console.log("ppp",profileImage)
+  console.log("profileImages",profileImage)
+
   const newImages = files?.images
     ? files.images.map((file,index) => ({
       fileName: file.filename,
       fileType: file.mimetype,
       // description: body?.documents?.[index]?.description || '',
       uploadDate: new Date(),
+      filePath: `${basePath}documents/${file.filename}`,
     }))
     : [];
 
-  const newDocuments = files?.documents
-    ? files.documents.map((file,index) => ({
-      fileName: file.filename,
-      fileType: file.mimetype,
-      // description: body?.documents?.[index]?.description || '',
-      uploadDate: new Date(),
-    }))
-    : [];
-
+  // console.log("newImages",newImages)
   // For updates, merge existing images
   const images = existingModel? [
       ...(body.images || []), // Attachments retained by the client
       ...newImages, // Newly uploaded attachments
     ]
     : newImages; // For signup, only new attachments
-
-    // For updates, merge existing attachments
-  const documents = existingModel? [
-      ...(body.documents || []), // Attachments retained by the client
-      ...newDocuments, // Newly uploaded attachments
-    ]
-    : newDocuments; // For signup, only new attachments
-
-  return { profileImage,images,documents };
+// console.log("images",images)
+  return { profileImage,images};
 };
 

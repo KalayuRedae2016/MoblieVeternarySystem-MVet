@@ -24,7 +24,7 @@ router
 router
   .route('/:id')
   .get(medicalVisitController.getVisitById)
-  .put(medicalVisitController.updateVisit)
+  .put(authoController.uploadFilesMiddleware,medicalVisitController.updateVisit)
   .delete(medicalVisitController.deleteVisit);
 
 router.get('/animal/:animalId', medicalVisitController.getVisitsByAnimal);

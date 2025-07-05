@@ -31,6 +31,15 @@ exports.uploadFilesMiddleware = attachments.fields([
   { name: 'documents', maxCount: 10 }, // Up to 10 files for documents
 ]);
 
+// exports.uploadFilesMiddleware = attachments.fields([
+//   { name: 'profileImage', maxCount: 1 },
+//   { name: 'images', maxCount: 10 },
+//   { name: 'labReports', maxCount: 5 },
+//   { name: 'xRays', maxCount: 5 },
+//   { name: 'prescriptions', maxCount: 5 },
+//   { name: 'medicalVideos', maxCount: 3 }
+// ]);
+
 // Signup controller
 exports.signup = catchAsync(async (req, res, next) => {
   console.log("registration request", req.body)

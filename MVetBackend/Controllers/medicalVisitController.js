@@ -18,17 +18,15 @@ exports.createVisit = catchAsync(async (req, res, next) => {
   }
   const animal = await Animal.findByPk(animalId);
   if (!animal) return next(new AppError('Animal not found', 404));
+
   // Check if the authenticated user is a physician
   if (!req.user || req.user.role==='user') {
     return next(new AppError('You are not authorized to create a medical visit', 403));
   }
 
-  let images = [];
-  if(req.files && req.files.images) {
-     const uploadedImages = await processUploadFilesToSave(req, req.files, req.body)
-      images=uploadedImages.images|[]
-
-  }
+  const {images} = await processUploadFilesToSave(req, req.files, req.body)
+  console.log("imagesUploaded", images);
+  
   const visit = await MedicalVisit.create({
     animalId,
     physicianId:req.user.id, // Use authenticated user's ID
@@ -37,12 +35,12 @@ exports.createVisit = catchAsync(async (req, res, next) => {
     ...restVisit
   });
 
-  res.status(201).json({
+  res.status(200).json({
     status: 'success',
+    message:"Visit created successfully",
     data: { visit }
   });
 });
-
 //  Get all medical visits in the hospital
 exports.getAllVisits = catchAsync(async (req, res, next) => {
   const visits = await MedicalVisit.findAll({
@@ -100,6 +98,22 @@ exports.updateVisit = catchAsync(async (req, res, next) => {
 exports.deleteVisit = catchAsync(async (req, res, next) => {
   const deletedCount = await MedicalVisit.destroy({
     where: { id: req.params.id }
+  });
+
+  if (deletedCount === 0) {
+    return next(new AppError('No visit found to delete', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Visit deleted successfully'
+  });
+});
+
+//Dealete all visit
+exports.deleteVisit = catchAsync(async (req, res, next) => {
+  const deletedCount = await MedicalVisit.destroy({
+    where: {}
   });
 
   if (deletedCount === 0) {
