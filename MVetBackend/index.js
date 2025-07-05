@@ -12,11 +12,12 @@ const AppError = require('./Utils/appError');
 const globalErrorHandler = require('./Controllers/errorController');
 
 const userRouter = require('./Routes/userRoutes');
+const animalRouter=require("./Routes/animalRoutes")
 
 const app = express(); //start Express app
 
 const listEndpoints = require('express-list-endpoints');
-console.log(listEndpoints(app));
+// console.log(listEndpoints(app));
 
 app.get("/", (req, res) => {
   res.send(`
@@ -122,6 +123,7 @@ app.use((req, res, next) => {
 
 //  #2 Routers
 app.use('/api/mvet/users',userRouter);
+app.use('/api/mvet/animals',animalRouter);
 
 
 // Catch-all route handler for undefined routes

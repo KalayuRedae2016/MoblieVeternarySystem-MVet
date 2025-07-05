@@ -1,9 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../Models');
+const { Animal, User, MedicalVisit } = require('../Models');
 const { Op, where } = require('sequelize');
 const validator = require('validator');
-const User = db.User;
 
 const catchAsync = require("../Utils/catchAsync")
 const AppError = require("../Utils/appError")

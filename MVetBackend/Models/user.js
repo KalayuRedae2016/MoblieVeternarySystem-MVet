@@ -21,9 +21,21 @@ module.exports = (sequelize, DataTypes) => {
     return randomPassword;
     }
     static associate(models) {
-      // define association here
+      // A User (owner) can have many Animals
+      User.hasMany(models.Animal, {
+        foreignKey: 'ownerId',
+        as: 'animals',
+      });
+
+      // A User (doctor) can have many MedicalVisits
+      User.hasMany(models.MedicalVisit, {
+        foreignKey: 'physicianId',
+        as: 'visits',
+      });
     }
   }
+  
+  
   User.init({
     name: {type:DataTypes.STRING,allowNull:false},
     phoneNumber:{type:DataTypes.STRING,allowNull:false,unique:true},
