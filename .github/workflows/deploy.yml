@@ -21,9 +21,7 @@ jobs:
           mkdir -p ~/.ssh
           echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/yegara_deploy_key
           chmod 600 ~/.ssh/yegara_deploy_key
-
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
-          
 
       - name: Deploy via rsync and ssh
         env:
@@ -32,7 +30,5 @@ jobs:
           REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
           APP_START_COMMAND: ${{ secrets.APP_START_COMMAND }}
         run: |
-          run: |
-              rsync -avz -e "ssh -i ~/.ssh/yegara_deploy_key -o StrictHostKeyChecking=no" --exclude='.git' --exclude='node_modules' ./ "$REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH"
-              ssh -i ~/.ssh/yegara_deploy_key -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_PATH && $APP_START_COMMAND"
-         
+          rsync -avz -e "ssh -i ~/.ssh/yegara_deploy_key -o StrictHostKeyChecking=no" --exclude='.git' --exclude='node_modules' ./ "$REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH"
+          ssh -i ~/.ssh/yegara_deploy_key -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_PATH && $APP_START_COMMAND"
