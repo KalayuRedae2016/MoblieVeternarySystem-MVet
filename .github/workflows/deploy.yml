@@ -19,9 +19,11 @@ jobs:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/yegara_deploy_key
+          chmod 600 ~/.ssh/yegara_deploy_key
+
           ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
+          
 
       - name: Deploy via rsync and ssh
         env:
