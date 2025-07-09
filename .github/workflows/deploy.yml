@@ -19,11 +19,11 @@ jobs:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
         run: |
           set -eux
-          
+
           # Check required values
           if [ -z "$SSH_PRIVATE_KEY" ]; then echo "SSH_PRIVATE_KEY is empty"; exit 1; fi
           if [ -z "$REMOTE_HOST" ]; then echo "REMOTE_HOST is empty"; exit 1; fi
-          
+
           echo "REMOTE_HOST is: $REMOTE_HOST"
 
           mkdir -p ~/.ssh
@@ -42,6 +42,11 @@ jobs:
           APP_START_COMMAND: ${{ secrets.APP_START_COMMAND }}
         run: |
           set -eux
+
+          # Debugging outputs
+          echo "REMOTE_USER=$REMOTE_USER"
+          echo "REMOTE_HOST=$REMOTE_HOST"
+          echo "REMOTE_PATH=$REMOTE_PATH"
 
           if [ -z "$REMOTE_USER" ]; then echo "REMOTE_USER is empty"; exit 1; fi
           if [ -z "$REMOTE_HOST" ]; then echo "REMOTE_HOST is empty"; exit 1; fi
