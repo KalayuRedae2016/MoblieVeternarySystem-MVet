@@ -33,13 +33,12 @@ jobs:
           REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
           APP_START_COMMAND: ${{ secrets.APP_START_COMMAND }}
         run: |
-          set -eux
-          if [ -z "$REMOTE_USER" ]; then echo "REMOTE_USER is empty"; exit 1; fi
-          if [ -z "$REMOTE_HOST" ]; then echo "REMOTE_HOST is empty"; exit 1; fi
-          if [ -z "$REMOTE_PATH" ]; then echo "REMOTE_PATH is empty"; exit 1; fi
-          if [ -z "$APP_START_COMMAND" ]; then echo "APP_START_COMMAND is empty"; exit 1; fi
-          echo "REMOTE_USER=$REMOTE_USER"
-          echo "REMOTE_HOST=$REMOTE_HOST"
-          echo "REMOTE_PATH=$REMOTE_PATH"
-          rsync -avz -e "ssh -i ~/.ssh/yegara_deploy_key -o StrictHostKeyChecking=no" . "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}"
-          ssh -i ~/.ssh/yegara_deploy_key -o StrictHostKeyChecking=no "${REMOTE_USER}@${REMOTE_HOST}" "$APP_START_COMMAND"
+          run: |
+            set -eux
+            if [ -z "$SSH_PRIVATE_KEY" ]; then echo "SSH_PRIVATE_KEY is empty"; exit 1; fi
+            if [ -z "$REMOTE_HOST" ]; then echo "REMOTE_HOST is empty"; exit 1; fi
+            echo "REMOTE_HOST is: '$REMOTE_HOST'" # Debug output
+            mkdir -p ~/.ssh
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/yegara_deploy_key
+            chmod 600 ~/.ssh/yegara_deploy_key
+            ssh-keyscan -H "$REMOTE_HOST" >> ~/.ssh/known_hosts
