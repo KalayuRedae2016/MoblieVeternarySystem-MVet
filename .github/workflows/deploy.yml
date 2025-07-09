@@ -42,4 +42,3 @@ jobs:
           echo "REMOTE_HOST=$REMOTE_HOST"
           echo "REMOTE_PATH=$REMOTE_PATH"
           rsync -avz -e "ssh -i ~/.ssh/yegara_deploy_key -o](#)
-
