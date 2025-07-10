@@ -23,8 +23,8 @@ const listEndpoints = require('express-list-endpoints');
 app.get("/", (req, res) => {
   res.send(`
     <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-      <h1 style="color:rgb(223, 16, 212);">🌟Welcome to <strong>Mobile Veternary Services</strong>🌟</h1>
-      <h2 style="color:rgb(223, 16, 212);">Stay tuned for incredible changes ahead!</strong></h2>
+      <h1 style="color:rgb(16, 223, 137);">🌟Welcome to <strong>Mobile Veternary Services</strong>🌟</h1>
+      <h2 style="color:rgb(16, 223, 154);">Stay tuned for incredible changes ahead!</strong></h2>
     </div>
   `);
 });
@@ -32,8 +32,8 @@ app.get("/", (req, res) => {
 app.get("/mvet", (req, res) => {
   res.send(`
     <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-      <h1 style="color:rgb(223, 16, 212);">🌟Welcome to <strong>Mobile Veternary Services</strong>🌟</h1>
-      <h2 style="color:rgb(223, 16, 212);">Stay tuned for incredible changes ahead!</strong></h2>
+      <h1 style="color:rgb(16, 223, 85);">🌟Welcome to <strong>Mobile Veternary Services</strong>🌟</h1>
+      <h2 style="color:rgb(16, 223, 154);">Stay tuned for incredible changes ahead!</strong></h2>
     </div>
   `);
 });
@@ -51,7 +51,7 @@ app.set('views', path.join(__dirname, 'views'));
 let corsOptions;
 if (process.env.NODE_ENV === 'production') {
   corsOptions = {
-    origin: ['http://mvet.com','https://mvet.com',null], // Allowed origin for production
+    origin: ['http://gkmvet.com','https://gkmvet.com',null], // Allowed origin for production
     credentials: true, // Enable credentials like cookies
     methods: ['GET', 'POST', 'PUT', 'PATCH','DELETE','OPTIONS'], // Add allowed methods
   };

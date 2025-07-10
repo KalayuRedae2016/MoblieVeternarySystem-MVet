@@ -7,7 +7,7 @@ const validator = require('validator');
 const catchAsync = require("../Utils/catchAsync")
 const AppError = require("../Utils/appError")
 require('dotenv').config();
-const { formatDate } = require("../utils/formatDate")
+const { formatDate } = require("../Utils/formatDate")
 
 const {createMulterMiddleware,processUploadFilesToSave} = require('../Utils/fileController');
 
