@@ -4,7 +4,7 @@ const AppError = require('../Utils/appError');
 const {generateAnimalCode,formatUser}=require("../Utils/modelUtils")
 const {Op}=require('sequelize')
 
-console.log('Models loaded:', { Animal: !!Animal, User: !!User });
+console.log('Models loaded:', { Animal: !!Animal, User: !!User,MedicalVisit: !!MedicalVisit });
 // Create a new animal
 exports.createAnimal = catchAsync(async (req, res, next) => {
     console.log("Requste animal Creation",req.body)
