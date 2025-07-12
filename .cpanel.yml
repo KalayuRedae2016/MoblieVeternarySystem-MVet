@@ -1,8 +1,9 @@
----
 deployment:
   tasks:
+    - echo "Starting deployment..."
     - export NODE_ENV=production
-    - cd mvetApp
+    - cd /home/gkmvetje/mvetApp
     - npm install
     - npx sequelize-cli db:migrate
-    - /home/gkmvetje/nodevenv/mvetApp/19/bin/node /home/gkmvetje/mvetApp/server.js
+    - pm2 restart mvetApp || pm2 start /home/gkmvetje/mvetApp/server.js --name mvetApp
+    - echo "Deployment completed."
