@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - export NODE_ENV=production
+    - cd mvetApp
+    - npm install
+    - npx sequelize-cli db:migrate
+    - /home/gkmvetje/nodevenv/mvetApp/19/bin/node /home/gkmvetje/mvetApp/server.js
