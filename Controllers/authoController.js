@@ -54,7 +54,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     }
   }
 
-  let { profileImage, documents } = await processUploadFilesToSave(req, req.files, req.body)
+  let { profileImage} = await processUploadFilesToSave(req, req.files, req.body)
   if(!profileImage){
   profileImage=`${req.protocol}://${req.get('host')}/uploads/default.png`;// full URL to default image
   }
