@@ -20,10 +20,10 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Optional: error logging
-process.on("unhandledRejection", err => {
+process.on("unhandledRejection", (err) => {
   console.error("❌ Unhandled Rejection:", err.message);
 });
-process.on("uncaughtException", err => {
+process.on("uncaughtException", (err) => {
   console.error("❌ Uncaught Exception:", err.message);
 });
 
