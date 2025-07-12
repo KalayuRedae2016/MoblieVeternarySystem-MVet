@@ -13,10 +13,16 @@ connectDB();
 const PORT = process.env.PORT || 3000;
 
 // Start the server
+if (process.env.NODE_ENV === "development") {
+  console.log(`✅ Server is running in development mode on port ${PORT}`);
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
 });
-
+} else {
+  console.log(`✅ Server is running in production mode on port`);
+  app.listen()
+    
+}
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err) => {
   console.error("❌ Unhandled Rejection:", err.message);

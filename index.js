@@ -20,6 +20,12 @@ const app = express(); //start Express app
 const listEndpoints = require('express-list-endpoints');
 // console.log(listEndpoints(app));
 
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+
 app.get("/", (req, res) => {
   res.send(`
     <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
