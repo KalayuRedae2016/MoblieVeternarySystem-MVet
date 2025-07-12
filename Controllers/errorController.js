@@ -51,14 +51,24 @@ const sendErrorProd = (err, req, res) => {
   if (err.isOperational) {
     return res.status(err.statusCode).json({
       status: err.status,
-      message: err.message
+      message: err.message,
+      //to be commited
+      statusCode: err.statusCode,
+      message: err.message,
+      errorType: err.errorType,
+      stack: err.stack
     });
   }
 
   return res.status(500).json({
     status: 0,
     statusCode: 500,
-    message: 'Something went wrong. Please try again later.',
+    //to be commited
+    message: err.message,
+    errorType: err.errorType,
+    stack: err.stack,
+
+    messagee: 'Something went wrong. Please try again later.',
     errorType: 'Unknown error'
   });
 };
