@@ -2,35 +2,29 @@ const dotenv = require("dotenv");
 const app = require("./index");
 const { connectDB } = require("./config/db");
 
-// Load environment variables based on the current NODE_ENV
+// Load environment file
 const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env.development";
 dotenv.config({ path: envFile });
 
-// Connect to the database
+// Connect DB
 connectDB();
 
-// Get port from environment (provided automatically by cPanel)
-const PORT = process.env.PORT || 3000;
-
-// Start the server
-if (process.env.NODE_ENV === "development") {
-  console.log(`✅ Server is running in development mode on port ${PORT}`);
-app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-});
+// In production (cPanel Passenger), do NOT start the server manually
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`✅ Server running in ${process.env.NODE_ENV} on http://localhost:${PORT}`);
+  });
 } else {
-  console.log(`✅ Server is running in production mode on port`);
-  app.listen()
-    
+  console.log("✅ Production environment detected: Passenger will manage the server.");
 }
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (err) => {
+
+// Optional: error logging
+process.on("unhandledRejection", err => {
   console.error("❌ Unhandled Rejection:", err.message);
-  process.exit(1);
+});
+process.on("uncaughtException", err => {
+  console.error("❌ Uncaught Exception:", err.message);
 });
 
-// Handle uncaught exceptions
-process.on("uncaughtException", (err) => {
-  console.error("❌ Uncaught Exception:", err.message);
-  process.exit(1);
-});
+module.exports = app; // still export app for Passenger
