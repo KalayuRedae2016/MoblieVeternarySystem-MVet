@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       references: { model: 'Users', key: 'id' }, 
       onDelete: 'CASCADE' 
     },
-    visitDate: { type: DataTypes.DATEONLY, defaultValue: DataTypes.NOW },
+    visitDate: { type: DataTypes.DATEONLY,allowNull: false, defaultValue: DataTypes.NOW },
 
     ownerComplaint: { type: DataTypes.TEXT, allowNull: true },
     symptoms: { type: DataTypes.TEXT, allowNull: true },

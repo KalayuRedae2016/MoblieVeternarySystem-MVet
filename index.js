@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
   res.send(`
     <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
       <h1 style="color:rgb(16, 223, 137);">🌟Welcome to <strong>Mobile Veternary Services</strong>🌟</h1>
-      <h2 style="color:rgb(16, 223, 154);">Stay tuned for incredible changes ahead!</strong></h2>
+      <h2 style="color:rgb(16, 223, 154);">Please Use Mobile App to Access the Services!</strong></h2>
     </div>
   `);
 });
@@ -33,7 +33,7 @@ app.get("/mvet", (req, res) => {
   res.send(`
     <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
       <h1 style="color:rgb(16, 223, 85);">🌟Welcome to <strong>Mobile Veternary Services</strong>🌟</h1>
-      <h2 style="color:rgb(16, 223, 154);">Stay tuned for incredible changes ahead!</strong></h2>
+      <h2 style="color:rgb(16, 223, 154);">Please Use Mobile App to Acccess the Services!</strong></h2>
     </div>
   `);
 });
