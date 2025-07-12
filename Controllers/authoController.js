@@ -58,13 +58,17 @@ exports.signup = catchAsync(async (req, res, next) => {
   if(!profileImage){
   profileImage=`${req.protocol}://${req.get('host')}/uploads/default.png`;// full URL to default image
   }
-  
+  try {
   const existingUser = await User.findOne({ where: { phoneNumber } });
   if (existingUser) {
     if (req.files) deleteFile(req.files.path);
     return (next(new AppError("PhoneNumber already in use", 404)))
   }
-
+  // your existing code continues here
+} catch (error) {
+  console.error("Sequelize DB query error:", error);
+  return next(new AppError("Internal Server Error", 500));
+}
   const hashedPassword = await bcrypt.hash(password, 12);// Hash password
 
   const newUser = await User.create({
