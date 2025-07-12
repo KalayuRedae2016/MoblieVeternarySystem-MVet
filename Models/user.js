@@ -54,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'User',
-    tableName: 'users', // optional: explicitly set the table name
+    tableName: 'Users', // optional: explicitly set the table name
     timestamps: true, // true by default; includes createdAt/updatedAt
   });
   return User;
