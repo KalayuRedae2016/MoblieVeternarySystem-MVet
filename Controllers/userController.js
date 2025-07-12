@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcryptjs");
 const jwt = require('jsonwebtoken');
 const { Animal, User, MedicalVisit } = require('../Models');
 const { Op, where } = require('sequelize');
