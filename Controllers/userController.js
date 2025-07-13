@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const { Animal, User, MedicalVisit } = require('../Models');
 const { Op, where } = require('sequelize');
 const validator = require('validator');
+const logger = require('../Utils/logger'); // adjust path
+
+
 
 const catchAsync = require("../Utils/catchAsync")
 const AppError = require("../Utils/appError")
@@ -32,7 +35,10 @@ exports.uploadUserFile = userFileUpload.single('file');
 
 exports.getUserstest = catchAsync(async (req, res, next) => {
   console.log("getAllUsers controller running");
-  
+  logger.info("Login route hit");
+  logger.info("Request body:", req.body);
+
+  // Check if the user is an admin or doctor
  const users = await User.findAll({});
 
   if (!users || users.length === 0) {
@@ -40,8 +46,6 @@ exports.getUserstest = catchAsync(async (req, res, next) => {
   }
 
 console.log("Users found:", users.length);
-console.log("Users data:", users);
-
   res.status(200).json({
     status: 1,
     totalUsers: users.length,
