@@ -30,7 +30,27 @@ const filterObj = (obj, ...allowedFields) => {
 // Middleware for handling single file upload
 exports.uploadUserFile = userFileUpload.single('file');
 
+exports.getUserstest = catchAsync(async (req, res, next) => {
+  console.log("getAllUsers controller running");
+  
+ const users = await User.findAll({});
+
+  if (!users || users.length === 0) {
+    return next(new AppError('No users found', 404));
+  }
+
+console.log("Users found:", users.length);
+console.log("Users data:", users);
+
+  res.status(200).json({
+    status: 1,
+    totalUsers: users.length,
+    users
+  });
+});
+
 exports.getAllUsers = catchAsync(async (req, res, next) => {
+  console.log("🧠 getAllUsers controller running");
   console.log("Requested User Role:", req.user.role);
   const { isActive } = req.query;
   let userQuery = {};

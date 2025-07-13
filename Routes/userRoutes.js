@@ -25,7 +25,7 @@ router.patch('/resetPassword',authoController.resetPassword);
 // // Protect all routes after this middleware
 
 
-router.use(authoController.authenticationJwt);
+// router.use(authoController.authenticationJwt);
 
 router.patch('/updatePassword',authoController.updatePassword);
 //router.patch('/getMe',authoController.uploadFilesMiddleware,authoController.getMe);
@@ -37,7 +37,7 @@ router.patch('/resetPasswordByAdmin/:userId',authoController.resetPasswordByAdmi
 // router.patch('/edituserPermission',userController.toggleEdiUserPermission);
 
 router.route('/')
-      .get(userController.getAllUsers)
+      .get(userController.getUserstest)
       .delete(userController.deleteUsers)
 
 router.route('/:userId')
