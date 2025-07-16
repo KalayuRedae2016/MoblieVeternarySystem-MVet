@@ -9,21 +9,22 @@ console.log('Models loaded:', { Animal: !!Animal, User: !!User,MedicalVisit: !!M
 exports.createAnimal = catchAsync(async (req, res, next) => {
     console.log("Requste animal Creation",req.body)
 
-    const {name,species,ownerId,...rest}=req.body
+    const {species,ownerId,...rest}=req.body
 
-  if(!name) return next(new AppError("Animal Name is Required",404))
   if(!species) return next(new AppError("Animal Species is Required",404))
   if (!ownerId || typeof ownerId !== 'number' || ownerId <= 0) {
   return next(new AppError("A valid ownerId is required", 404));
 }
 
  const owner=await User.findByPk(ownerId)
- if(!owner) return next(new AppError("Please Provide Normal Registered Owner"))
+ if(!owner) return next(new AppError("Owner is not found,please register owner of the patient first"))
 console.log("owner of the animal",formatUser(owner))
+
  const identificationMark=await generateAnimalCode()
  console.log("indentificationMark",identificationMark)
+
   const animal = await Animal.create({
-    name,species,ownerId,identificationMark,
+    species,ownerId,identificationMark,
     ...rest
   });
 
@@ -143,7 +144,7 @@ exports.deleteAnimal = catchAsync(async (req, res, next) => {
 });
 
 //  Delete all animals
-exports.deleteAnimal = catchAsync(async (req, res, next) => {
+exports.deleteAnimals = catchAsync(async (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
     return next(new AppError('Only admins can delete all animals', 403));
   }

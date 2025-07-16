@@ -1,36 +1,46 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const bodyparser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const hpp = require('hpp');
-const morgan=require("morgan")
+const morgan = require("morgan");
 const AppError = require('./Utils/appError');
 const globalErrorHandler = require('./Controllers/errorController');
 
 const userRouter = require('./Routes/userRoutes');
-const animalRouter=require("./Routes/animalRoutes")
+const animalRouter = require("./Routes/animalRoutes");
 const medicalVisitRouter = require('./Routes/medicalVisitsRoutes');
 
-const app = express(); //start Express app
+const app = express();
+// const listEndpoints = require('express-list-endpoints');
 
-const listEndpoints = require('express-list-endpoints');
-// console.log(listEndpoints(app));
+// Enable trust proxy
+app.enable('trust proxy');
 
+// Set view engine
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+// Log basic request info
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  console.log('Headers:', req.headers);
+  console.log('Query:', req.query);
   next();
 });
 
+// Use morgan to log request details
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 
+// Home Routes
 app.get("/", (req, res) => {
   res.send(`
     <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-      <h1 style="color:rgb(16, 223, 137);">🌟Welcome to <strong>Mobile Veternary Services App</strong>🌟</h1>
-      <h2 style="color:rgb(16, 223, 154);">Please Use Mobile App to Access the Services!</strong></h2>
+      <h1 style="color:rgb(16, 223, 137);">🌟Welcome to <strong>Mobile Veterinary Services App</strong>🌟</h1>
+      <h2 style="color:rgb(16, 223, 154);">Please Use Mobile App to Access the Services!</h2>
     </div>
   `);
 });
@@ -38,108 +48,82 @@ app.get("/", (req, res) => {
 app.get("/mvet", (req, res) => {
   res.send(`
     <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-      <h1 style="color:rgb(16, 223, 85);">🌟Welcome to <strong>Mobile Veternary Services App</strong>🌟</h1>
-      <h2 style="color:rgb(16, 223, 154);">Please Use Mobile App to Acccess the Services!</strong></h2>
+      <h1 style="color:rgb(16, 223, 85);">🌟Welcome to <strong>Mobile Veterinary Services App</strong>🌟</h1>
+      <h2 style="color:rgb(16, 223, 154);">Please Use Mobile App to Access the Services!</h2>
     </div>
   `);
 });
 
-
-app.enable('trust proxy'); //Set trust proxy correctly based on whether your application is behind a proxy.
-
-app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, 'views'));
-
-// #1 Global Middlwares
-// Implement CORS
-// Postman usually sets null as the origin unless specified otherwise. 
-// This may cause your server to reject requests if null is not included in the origin list.
+// CORS configuration
 let corsOptions;
 if (process.env.NODE_ENV === 'production') {
   corsOptions = {
-    origin: ['http://gkmvet.com','https://gkmvet.com',null], // Allowed origin for production
-    credentials: true, // Enable credentials like cookies
-    methods: ['GET', 'POST', 'PUT', 'PATCH','DELETE','OPTIONS'], // Add allowed methods
+    origin: ['http://gkmvet.com', 'https://gkmvet.com','http://api.gkmvet.com', 'https://api.gkmvet.com', null],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   };
 } else {
   corsOptions = {
-    origin: '*', // Allow all origins for development
-    credentials: true, // Enable credentials like cookies
-    methods: ['GET', 'POST', 'PUT', 'PATCH','DELETE','OPTIONS'], // Add allowed methods
+    origin: '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   };
 }
-
-// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Serving static files
-// app.use(express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-
-// Security HTTP Headers
+// Security
 app.use(helmet());
 app.use(compression());
 
-// Development logging
-if (process.env.NODE_ENV === 'development') {
-  //app.use(morgan('dev'));
-  app.use(morgan("combined"))
-}
-
-//Limit requests from Same API (Configure rate limiting in express-rate-limit to use the correct IP source.)
+// Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: 'Too many requests from this IP, please try again later.',
-  skip: (req, res) => {
-    return true; // Always skip rate limiting, effectively making it infinite
-  },
-  keyGenerator: (req) => {
-    return req.ip; // Use req.ip if not behind a proxy
-  },
-  handler: (req, res, next, options) => {
-    res.status(options.statusCode).json({
-      message: options.message,
-    });
-  },
+  keyGenerator: req => req.ip,
+  skip: req => false,
 });
-app.use(limiter); // Apply rate limiter to all routes
+app.use(limiter);
 
-//Body parser, reading data from body into req.body
-// app.use(bodyparser.json());no need to add
-// // app.use(logmiddlware); // Apply log middleware to all routes
-//app.use(bodyparser.urlencoded({ extended: true }));
-app.use(express.json()); // built-in middleware
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Body parsing
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Prevent parameter pollution
-app.use(
-  hpp({
-    whitelist: ['id'],
-  })
-);
+// Prevent HTTP parameter pollution
+app.use(hpp({ whitelist: ['id'] }));
 
-// Test Middleware
+// Track request time
 app.use((req, res, next) => {
-  req.requesttime = new Date().toLocaleString();
+  req.requestTime = new Date().toLocaleString();
   next();
 });
 
+// Log request body and files (for API debugging)
+app.use((req, res, next) => {
+  if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+    console.log('🔍 Body:', req.body);
+  }
+  if (req.files) {
+    console.log('📎 Files:', req.files);
+  }
+  next();
+});
 
-//  #2 Routers
-app.use('/api/mvet/users',userRouter);
-app.use('/api/mvet/animals',animalRouter);
-app.use('/api/mvet/medicalVisits', medicalVisitRouter); 
+// Routers
+app.use('/api/mvet/users', userRouter);
+app.use('/api/mvet/animals', animalRouter);
+app.use('/api/mvet/medicalVisits', medicalVisitRouter);
 
-
-// Catch-all route handler for undefined routes
-//  app.all('*', (req, res, next) => {
-//     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+// Catch undefined routes
+// app.all('*', (req, res, next) => {
+//   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 // });
 
-// Global error handling middleware
-// app.use(globalErrorHandler);
+// Global error handler
+app.use(globalErrorHandler);
 
 module.exports = app;

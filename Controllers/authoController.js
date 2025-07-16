@@ -10,6 +10,7 @@ require('dotenv').config();
 
 
 const { sendEmail, sendWelcomeEmail } = require('../Utils/email');
+const { formatDate } = require("../Utils/formatDate")
 // const {logAction}=require("../Utils/logUtils")
 const { deleteFile, createMulterMiddleware, processUploadFilesToSave } = require('../Utils/fileController');
 
@@ -373,132 +374,68 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 });
 
 exports.getMe = catchAsync(async (req, res, next) => {
-  const userId=req.user.id
-  const user=await User.findByPk(userId)
-  if(!user) return next(new AppError("No user Found",404))
+  console.log("requestUser", req.user.dataValues)
+  const userId = req.user.id;
+  const user = await User.findByPk(userId);
+
+  if (!user) return next(new AppError("No user found", 404));
+
+  const formattedCreatedAt = user.createdAt ? formatDate(user.createdAt) : null;
+  const formattedUpdatedAt = user.updatedAt ? formatDate(user.updatedAt) : null;
+
   res.status(200).json({
     status: 1,
-    message: "get my Profile succefully",
-    user
-  });
-})
-exports.updateMe = catchAsync(async (req, res, next) => {
-  // Step 1: Fetch the user and validate existence
-  console.log("requestUser", req.user)
-  const user = await User.findByPk(req.user.id);
-  if (!user) {
-    return next(new AppError('User not found', 404));
-  }
-
-  // Step 2: Check if the user has permission to edit details
-  if (!user.adminPermissions.canEditDetails) {
-    return next(new AppError('Editing access is not enabled. Please contact Admin.', 403));
-  }
-
-  // Step 3: Prevent password updates through this route
-  if (req.body.password) {
-    return next(
-      new AppError('This route is not for password updates. Please use /updateMyPassword.', 400)
-    );
-  }
-
-  // Step 4: Filter allowed fields to update
-  const filteredBody = filterObj(
-    req.body,
-    "fullName",
-    'phoneNumber',
-    'email',
-    'gender'
-  );
-
-  // Step 5: Handle profile image upload
-  if (req.files && req.files.profileImage) {
-    const newProfileImage = req.files.profileImage[0].filename;
-
-    // Delete the existing profile image from the server, if not default
-    if (user.profileImage && user.profileImage !== 'default.png') {
-      //const oldImagePath = path.join(__dirname, '..', 'uploads', 'profileImages', user.profileImage);
-      const oldImagePath = path.join(__dirname, '..', 'uploads', 'userAttachements', user.profileImage);
-      deleteFile(oldImagePath);
-    }
-
-    // Update profile image in the filtered body
-    filteredBody.profileImage = newProfileImage;
-  }
-
-  // Step 6: Handle attachments update
-  const updatedAttachments = req.body.attachments
-    ? JSON.parse(req.body.attachments) // Parse if attachments are sent as JSON
-    : [];
-  const existingAttachments = user.attachments || [];
-
-  // Determine attachments to remove (those not in the updated list)
-  const removedAttachments = existingAttachments.filter(
-    (attachment) => !updatedAttachments.some((updated) => updated.fileName === attachment.fileName)
-  );
-
-  // Delete removed attachments from the storage
-  for (const removed of removedAttachments) {
-    const filePath = path.join(__dirname, '..', 'uploads', 'userAattachments', removed.fileName);
-    deleteFile(filePath);
-  }
-
-  // Prepare the final list of attachments
-  let attachmentsToSave = [...updatedAttachments];
-
-  // Add new attachments from req.files.attachments
-  if (req.files && req.files.attachments && req.files.attachments.length > 0) {
-    const newAttachments = req.files.attachments.map((file) => ({
-      fileName: file.filename,
-      fileType: file.mimetype,
-      description: req.body.description || '',
-      uploadDate: new Date(),
-    }));
-
-    attachmentsToSave.push(...newAttachments); // Combine existing with new attachments
-  }
-
-  // Update attachments in the filtered body
-  filteredBody.attachments = attachmentsToSave;
-
-  // Step 7: Update user details in the database
-  const updatedUser = await User.findByIdAndUpdate(
-    req.user._id,
-    { $set: filteredBody },
-    { new: true, runValidators: true }
-  );
-
-  // Step 8: Revoke edit permission after successful update
-
-  if (!['Admin', 'SuperAdmin'].includes(user.role)) {
-    user.canEditDetails = false;
-  }
-  await user.save();
-
-  await logAction({
-    model: 'users',
-    action: 'Update',
-    actor: req.user && req.user.id ? req.user.id : 'system',
-    description: `${user.fullName} update his Profile`,
-    data: { userId: user.id, filteredBody },
-    ipAddress: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
-    severity: 'info',
-    sessionId: req.session?.id || 'generated-session-id',
-  });
-
-  // Step 9: Format timestamps for the response
-  const formattedCreatedAt = updatedUser.createdAt ? formatDate(updatedUser.createdAt) : null;
-  const formattedUpdatedAt = updatedUser.updatedAt ? formatDate(updatedUser.updatedAt) : null;
-
-  // Step 10: Send success response
-  res.status(200).json({
-    status: 1,
-    message: "user Updated Sucessfully",
-    updatedUser: {
-      ...updatedUser._doc,
+    message: "Your Profile fetched successfully",
+    data: {
+      ...user.toJSON(),
       formattedCreatedAt,
       formattedUpdatedAt,
     },
   });
 });
 
+exports.updateMe = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+
+  console.log("Requesting User:", req.user.dataValues);
+  console.log("Incoming Body:", req.body);
+
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return next(new AppError('No fields to update provided.', 400));
+  }
+
+  const unallowedFields = ['id', 'createdAt', 'updatedAt', 'password', 'role', 'isActive','education', 'specialization', 'licenseNumber'];
+  for (const field of unallowedFields) {
+    if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+      return next(new AppError(`You cannot update the "${field}" field.`, 400));
+    }
+  }
+
+  const allowedFields = ['name', 'phoneNumber', 'email', 'address', 'profileImage'];
+  const filteredBody = {};
+  allowedFields.forEach(field => {
+    if (req.body[field] !== undefined) {
+      filteredBody[field] = req.body[field];
+    }
+  });
+
+  if (req.files && req.files.profileImage) {
+    const { profileImage } = await processUploadFilesToSave(req, req.files, req.body);
+    filteredBody.profileImage = profileImage;
+  }
+
+  await User.update(filteredBody, {
+    where: { id: userId }
+  });
+
+  const updatedUser = await User.findByPk(userId);
+  if (!updatedUser) {
+    return next(new AppError('User not found after update.', 404));
+  }
+
+  res.status(200).json({
+    status: 1,
+    message: 'Profile updated successfully',
+    data: updatedUser,
+  });
+});

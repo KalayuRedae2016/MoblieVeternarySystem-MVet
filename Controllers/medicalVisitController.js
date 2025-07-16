@@ -7,8 +7,10 @@ const { processUploadFilesToSave } = require('../Utils/fileController');
 exports.createVisit = catchAsync(async (req, res, next) => {
   console.log('Creating visit with data:', req.body);
   console.log('Authenticated user:', req.user.role);
-  console.log("images to uploaded", req.files.images);
-  const{animalId,visitDate,...restVisit} = req.body;
+  console.log(" requested images to uploaded", req.files.images);
+
+  const{animalId,visitDate,labResults,medications,...restVisit} = req.body;
+  
   // Validate required fields
   const requiredFields = ['animalId', 'visitDate'];
   for (const field of requiredFields) { 
@@ -16,6 +18,7 @@ exports.createVisit = catchAsync(async (req, res, next) => {
       return next(new AppError(`Missing required field: ${field}`, 404));
     }
   }
+
   const animal = await Animal.findByPk(animalId);
   if (!animal) return next(new AppError('Animal not found', 404));
 
@@ -24,6 +27,9 @@ exports.createVisit = catchAsync(async (req, res, next) => {
     return next(new AppError('You are not authorized to create a medical visit', 403));
   }
 
+const parsedLabResults = labResults ? JSON.parse(labResults) : null;
+const parsedMedications = medications ? JSON.parse(medications) : null;
+
   const {images} = await processUploadFilesToSave(req, req.files, req.body)
   console.log("imagesUploaded", images);
   
@@ -31,6 +37,8 @@ exports.createVisit = catchAsync(async (req, res, next) => {
     animalId,
     physicianId:req.user.id, // Use authenticated user's ID
     visitDate,
+    labResults: parsedLabResults,
+    medications: parsedMedications,
     images,
     ...restVisit
   });
