@@ -272,6 +272,33 @@ exports.getWeeklyVisits = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAppointedPatients= catchAsync(async (req, res, next) => {
+  const visits = await MedicalVisit.findAll({
+    where: {
+      immunizationDate: {
+        [Op.gte]: new Date() // Get visits scheduled for today or later
+      }
+    },
+    include: [
+      { model: Animal, as: 'animal' },
+      { model: User, as: 'physician' }
+    ]
+  });
+
+  if (visits.length === 0) {
+    return res.status(200).json({
+      status: 'success',
+      message: 'No upcoming visits found'
+    });
+  }
+
+  res.status(200).json({
+    status: 'success',
+    results: visits.length,
+    data: { visits }
+  });
+});
+
 // exports.getVisitsByDateRange = catchAsync(async (req, res, next) => {
 //   const { startDate, endDate } = req.query;
 
