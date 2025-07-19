@@ -273,6 +273,8 @@ exports.getWeeklyVisits = catchAsync(async (req, res, next) => {
 });
 
 exports.getAppointedPatients= catchAsync(async (req, res, next) => {
+  console.log("Fetching upcoming visits");
+  
   const visits = await MedicalVisit.findAll({
     where: {
       immunizationDate: {
@@ -280,8 +282,9 @@ exports.getAppointedPatients= catchAsync(async (req, res, next) => {
       }
     },
     include: [
-      { model: Animal, as: 'animal' },
-      { model: User, as: 'physician' }
+      { model: Animal, as: 'animal',include: [{ model: User, as: 'owner' }] },
+      { model: User, as: 'physician' },
+      
     ]
   });
 

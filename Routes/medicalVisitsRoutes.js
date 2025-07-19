@@ -31,6 +31,6 @@ router.get('/animal/:animalId', medicalVisitController.getVisitsByAnimal);
 router.get('/physician/:physicianId', medicalVisitController.getVisitsByPhysician);
 router.get('/activity/daily', medicalVisitController.getDailyVisits);
 router.get('/activity/weekly', medicalVisitController.getWeeklyVisits);
-
+router.get('/appointments/patients', medicalVisitController.getAppointedPatients);
 
 module.exports = router;
