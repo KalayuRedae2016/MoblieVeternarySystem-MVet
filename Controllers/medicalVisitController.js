@@ -87,21 +87,24 @@ exports.getVisitById = catchAsync(async (req, res, next) => {
 
 //  Update a visit
 exports.updateVisit = catchAsync(async (req, res, next) => {
-  const [updatedCount] = await MedicalVisit.update(req.body, {
-    where: { id: req.params.id }
-  });
-
-  if (updatedCount === 0) {
-    return next(new AppError('No visit found to update', 404));
+  const medicalVisit = await MedicalVisit.findByPk(req.params.id);
+  if (!medicalVisit) {
+    return next(new AppError('No visit found with that ID', 404));
   }
+  let {images} = await processUploadFilesToSave(req, req.files, req.body, medicalVisit)
+  if(!images) images=medicalVisit.images
+  const updatedData={...req.body, images};
 
-  const updatedVisit = await MedicalVisit.findByPk(req.params.id);
+  await medicalVisit.update(updatedData);
+  const updatedMedicalVisit=await MedicalVisit.findByPk(req.params.id)
 
   res.status(200).json({
     status: 'success',
-    data: { visit: updatedVisit }
+    message: 'Medical Visit updated successfully',
+    data: updatedMedicalVisit
   });
 });
+  
 
 //  Delete a visit
 exports.deleteVisit = catchAsync(async (req, res, next) => {
@@ -120,7 +123,7 @@ exports.deleteVisit = catchAsync(async (req, res, next) => {
 });
 
 //Dealete all visit
-exports.deleteVisit = catchAsync(async (req, res, next) => {
+exports.deleteAllVisits = catchAsync(async (req, res, next) => {
   const deletedCount = await MedicalVisit.destroy({
     where: {}
   });
@@ -150,7 +153,7 @@ exports.getVisitsByPhysician = catchAsync(async (req, res, next) => {
 });
 
 //  Get visits for a specific animal
-exports.getVisitsByAnimal = catchAsync(async (req, res, next) => {
+exports.getMedicalHistoryByAnimal = catchAsync(async (req, res, next) => {
   const visits = await MedicalVisit.findAll({
     where: { animalId: req.params.animalId },
     include: [{ model: User, as: 'physician' }]
@@ -302,6 +305,28 @@ exports.getAppointedPatients= catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getPatientStatus=catchAsync(async(req, res, next) => {
+  console.log("Fetching patient status");
+  const totalVisits = await MedicalVisit.count();
+  const deceasedPatients = await MedicalVisit.count({ where: { outcome: 'deceased' } });
+  const recoveredPatients = await MedicalVisit.count({ where: { outcome: 'recovered' } });
+  const followUpPatients = await MedicalVisit.count({ where: { outcome: 'followUp' } });
+  const referredPatients = await MedicalVisit.count({ where: { outcome: 'referred' } });
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Patient status fetched successfully',
+    data: {
+      totalVisits,
+      deceasedPatients,
+      recoveredPatients,
+      followUpPatients,
+      referredPatients,
+    }
+  });
+})
+ 
+
 // exports.getVisitsByDateRange = catchAsync(async (req, res, next) => {
 //   const { startDate, endDate } = req.query;
 
@@ -316,7 +341,7 @@ exports.getAppointedPatients= catchAsync(async (req, res, next) => {
 //       }
 //     },
 //     include: [
-//       { model: Animal, as: 'animal' },
+//       { model: MedicalVisit, as: 'animal' },
 //       { model: User, as: 'physician' }
 //     ]
 //   });

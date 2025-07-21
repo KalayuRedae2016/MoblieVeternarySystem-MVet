@@ -33,68 +33,35 @@ const filterObj = (obj, ...allowedFields) => {
 // Middleware for handling single file upload
 exports.uploadUserFile = userFileUpload.single('file');
 
-exports.getUserstest = catchAsync(async (req, res, next) => {
-  console.log("getAllUsers controller running");
-  logger.info("Login route hit");
-  logger.info("Request body:", req.body);
-
-  // Check if the user is an admin or doctor
- const users = await User.findAll({});
-
-  if (!users || users.length === 0) {
-    return next(new AppError('No users found', 404));
-  }
-
-console.log("Users found:", users.length);
-  res.status(200).json({
-    status: 1,
-    totalUsers: users.length,
-    users
-  });
-});
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   console.log("🧠 getAllUsers controller running");
   console.log("Requested User Role:", req.user.role);
-  const { isActive } = req.query;
+  const {role,isActive} = req.query;
   let userQuery = {};
-
-  if (req.user.role === "admin") {
-    userQuery.role = "admin";
-  } else if (req.user.role === "doctor") {
-    userQuery.role = "doctor";
-  } else {
-    return next(new AppError("No Access/Authorized", 403));
-  }
-
- if (typeof isActive !== 'undefined') {
-  if (isActive === 'true' || isActive === true || isActive === 1 || isActive === '1') {
-    userQuery.isActive = true;
-  } else {
-  userQuery.isActive = false;
-  }
-}
-
-  console.log("UserQuery",userQuery)
- const users = await User.findAll({ where: userQuery });
+  
+  if (role)  userQuery.role = role;
+  if(isActive) userQuery.isActive = isActive === 'true';
+  
+ const users = await User.findAll({where:userQuery});
 
   if (!users || users.length === 0) {
     return next(new AppError('No users found', 404));
   }
 
   // Initialize counters
-  let activeUsers = 0,
-      deactiveUsers = 0,
-      activeDoctors = 0,
-      deactiveDoctors = 0,
-      adminUsers = 0;
+  let activePhysians= 0,
+      NonActivePhysians = 0,
+      adminUsers= 0,
+      owners=0
+    
 
   const formattedUsers = users.map(user => {
-    if (user.isActive && user.role === "user") activeUsers++;
-    if (!user.isActive && user.role === "user") deactiveUsers++;
-    if (user.isActive && user.role === "doctor") activeDoctors++;
-    if (!user.isActive && user.role === "doctor") deactiveDoctors++;
     if (user.role === "admin") adminUsers++;
+    if (user.isActive && user.role === "doctor") activePhysians++;
+    if (!user.isActive && user.role === "doctor") NonActivePhysians++;
+    if (user.isActive && user.role === "user") owners++;
+    
 
     return {
       ...user.toJSON(),
@@ -106,11 +73,10 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 1,
     totalUsers: users.length,
-    activeUsers,
-    deactiveUsers,
-    activeDoctors,
-    deactiveDoctors,
     adminUsers,
+    activePhysians,
+    NonActivePhysians,
+    owners,    
     users: formattedUsers
   });
 });

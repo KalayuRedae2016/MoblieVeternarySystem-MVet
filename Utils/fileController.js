@@ -255,7 +255,7 @@ exports.deleteFile = async (filePath) => {
 //   });
 // };
 
-exports.processUploadFilesToSave = async (req, files = {}, body = {}, type = {}, existingModel = null) => {
+exports.processUploadFilesToSave = async (req, files = {}, body = {}, existingModel = null) => {
   files = files || {}; // ensures files is at least an empty object
 
   let profileImage = null;
@@ -281,25 +281,31 @@ exports.processUploadFilesToSave = async (req, files = {}, body = {}, type = {},
 }
 
   console.log("profileImages",profileImage)
+  //console.log("files",files)
 
-  const newImages = files?.images
-    ? files.images.map((file,index) => ({
-      fileName: file.filename,
-      fileType: file.mimetype,
-      // description: body?.documents?.[index]?.description || '',
-      uploadDate: new Date(),
-      filePath: `${basePath}documents/${file.filename}`,
-    }))
+  // Handle multiple images (append to existing)
+  const newImages = Array.isArray(files?.images)
+    ? files.images.map(file => ({
+        fileName: file.filename,
+        fileType: file.mimetype,
+        uploadDate: new Date(),
+        filePath: `${basePath}documents/${file.filename}`,
+      }))
     : [];
 
-  // console.log("newImages",newImages)
-  // For updates, merge existing images
-  const images = existingModel? [
-      ...(body.images || []), // Attachments retained by the client
-      ...newImages, // Newly uploaded attachments
-    ]
-    : newImages; // For signup, only new attachments
-// console.log("images",images)
+  console.log("newImages",newImages)
+  console.log("existingModel",existingModel)
+  if (newImages.length === 0 && existingModel) {
+    newImages.push(...(existingModel.images || []));
+  }
+
+  const existingImages = existingModel?.images || [];
+  // Append newImages to existingModel images (if any)
+  const images = existingModel?.images
+    ? [...newImages]
+    : newImages;
+  console.log("images",images)
+
   return { profileImage,images};
 };
 

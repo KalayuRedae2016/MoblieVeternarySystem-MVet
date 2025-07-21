@@ -37,7 +37,6 @@ console.log("owner of the animal",formatUser(owner))
 
 // Get all animals with their owners included
 exports.getAllAnimals = catchAsync(async (req, res,next) => {
-  const { Animal, User } = require('../Models');
 console.log('Models loaded:', { Animal: !!Animal, User: !!User });
 const { name, species, breed, sex, region, zone, wereda, tabie}=req.query
   const {identificationMark,ownerName, fromDate, toDate } = req.query;
@@ -177,15 +176,41 @@ exports.getAnimalsByOwner = catchAsync(async (req, res, next) => {
   });
 });
 
-//  Get medical history of an animal
-exports.getMedicalHistory = catchAsync(async (req, res, next) => {
-  const visits = await MedicalVisit.findAll({
-    where: { animalId: req.params.animalId }
+exports.getAnimalStatus = catchAsync(async (req, res, next) => {
+  const totalAnimals = await Animal.count();
+
+  const Southern = await Animal.count({ where: { zone: "Southern" } });
+  const Centeral = await Animal.count({ where: { zone: "Centeral" } });
+  const SouthEast = await Animal.count({ where: { zone: "SouthEast" } });
+  const NorthWest = await Animal.count({ where: { zone: "NorthWest" } });
+  const West = await Animal.count({ where: { zone: "West" } });
+  const East = await Animal.count({ where: { zone: "East" } });
+
+  const speciesStats = await Animal.findAll({
+    attributes: ['species', [Animal.sequelize.fn('COUNT', Animal.sequelize.col('species')), 'count']],
+    group: 'species',
+    raw: true
   });
+
+  const maleAnimals = await Animal.count({ where: { sex: 'Male' } });
+  const femaleAnimals = await Animal.count({ where: { sex: 'Female' } });
 
   res.status(200).json({
     status: 'success',
-    results: visits.length,
-    data: { visits }
+    message: 'Animal status fetched successfully',
+    data: {
+      totalAnimals,
+      zones: {
+        Southern,
+        Centeral,
+        SouthEast,
+        NorthWest,
+        West,
+        East
+      },
+      speciesStats,
+      maleAnimals,
+      femaleAnimals
+    }
   });
 });

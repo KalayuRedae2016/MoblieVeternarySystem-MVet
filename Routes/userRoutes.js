@@ -34,7 +34,7 @@ router.use(authoController.requiredRole('admin'));
 router.patch('/resetPasswordByAdmin/:userId',authoController.resetPasswordByAdmin);
 
 router.route('/')
-      .get(userController.getUserstest)
+      .get(userController.getAllUsers)
       .delete(userController.deleteUsers)
 
 router.route('/:userId')

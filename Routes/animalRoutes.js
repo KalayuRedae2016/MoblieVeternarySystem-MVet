@@ -24,6 +24,6 @@ router
   .delete(animalController.deleteAnimal);
 
 router.get('/owner/:ownerId', animalController.getAnimalsByOwner);
-router.get('/:animalId/visits', animalController.getMedicalHistory);
+router.get("/status/count", animalController.getAnimalStatus);
 
 module.exports = router;

@@ -11,15 +11,14 @@ router.use(function (req, res, next) {
   next();
 });
 
-
-
 router.use(authoController.authenticationJwt);
 //router.use(authoController.requiredRole('doctor', 'doctor'));
 
 router
   .route('/')
   .get(medicalVisitController.getAllVisits)
-  .post(authoController.uploadFilesMiddleware,medicalVisitController.createVisit);
+  .post(authoController.uploadFilesMiddleware,medicalVisitController.createVisit)
+  .delete(medicalVisitController.deleteAllVisits);
 
 router
   .route('/:id')
@@ -27,10 +26,11 @@ router
   .put(authoController.uploadFilesMiddleware,medicalVisitController.updateVisit)
   .delete(medicalVisitController.deleteVisit);
 
-router.get('/animal/:animalId', medicalVisitController.getVisitsByAnimal);
+router.get('/animal/:animalId', medicalVisitController.getMedicalHistoryByAnimal);
 router.get('/physician/:physicianId', medicalVisitController.getVisitsByPhysician);
 router.get('/activity/daily', medicalVisitController.getDailyVisits);
 router.get('/activity/weekly', medicalVisitController.getWeeklyVisits);
 router.get('/appointments/patients', medicalVisitController.getAppointedPatients);
+router.get('/patients/status', medicalVisitController.getPatientStatus);
 
 module.exports = router;
