@@ -39,8 +39,8 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
 app.get("/", (req, res) => {
   res.send(`
     <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-      <h1 style="color:rgb(16, 223, 137);">🌟Welcome to <strong>Mobile Veterinary Services App</strong>🌟</h1>
-      <h2 style="color:rgb(16, 223, 154);">Please Use Mobile App to Access the Services!</h2>
+      <h1 style="color:rgb(16, 223, 137);">🌟 Welcome to <strong>Mobile Veterinary Services App</strong> 🌟</h1>
+      <h2 style="color:rgb(16, 223, 154);">Access permitted only using mobile App</h2>
     </div>
   `);
 });
