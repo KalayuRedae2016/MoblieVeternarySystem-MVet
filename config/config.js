@@ -1,8 +1,18 @@
+const path = require('path');
 const dotenv = require('dotenv');
 
-// Load specific env file based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-dotenv.config({ path: envFile });
+// Determine environment
+const env = process.env.NODE_ENV || 'development';
+
+// Load corresponding .env file
+const envPath = path.resolve(__dirname, `../.env.${env}`);
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.warn(`⚠️ Could not load .env file at ${envPath}`);
+} else {
+  console.log(`✅ Loaded environment variables from ${envPath}`);
+}
 
 module.exports = {
   development: {

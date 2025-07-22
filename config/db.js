@@ -1,11 +1,20 @@
 const { Sequelize } = require('sequelize');
-const dotenv = require('dotenv'); // ✅ You forgot this line
+const dotenv = require('dotenv');
+const path = require('path');
 
-// Load environment file
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-dotenv.config({ path: envFile });
+// Determine environment
+const env = process.env.NODE_ENV || 'development';
 
-// Create a new instance of Sequelize
+// Load environment variables from corresponding .env file
+const envFilePath = path.resolve(__dirname, `../.env.${env}`);
+dotenv.config({ path: envFilePath });
+
+console.log(`📦 Loading environment variables from ${envFilePath}`);
+console.log('DB_USER:', process.env.DB_USER || '❌ Missing');
+console.log('DB_PASS:', process.env.DB_PASS ? '✔ Loaded' : '❌ Missing');
+console.log('DB_NAME:', process.env.DB_NAME || '❌ Missing');
+console.log('DB_HOST:', process.env.DB_HOST || '❌ Missing');
+
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -13,7 +22,7 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: 'mysql',
-    logging: process.env.NODE_ENV === 'development',
+    logging: env === 'development',
     pool: {
       max: 5,
       min: 0,
@@ -23,13 +32,12 @@ const sequelize = new Sequelize(
   }
 );
 
-// Test connection
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ MySQL connected via Sequelize.');
   } catch (error) {
-    console.error('❌ Unable to connect to MySQL:', error);
+    console.error('❌ Unable to connect to MySQL:', error.message);
     process.exit(1);
   }
 };
