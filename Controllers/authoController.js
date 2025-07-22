@@ -289,7 +289,7 @@ exports.resetPasswordByAdmin = catchAsync(async (req, res, next) => {
     // Send email to user
     const subject = 'Your Password Has Been Reset';
     const email = user.email;
-    const loginLink = process.env.NODE_ENV === "development" ? "http://localhost:8085" : "https://mvet.com";
+    const loginLink = process.env.NODE_ENV === "development" ? "http://localhost:8085" : "https://api.gkmvet.com";
     const message = `Hi ${user.name},
 
         Your password has been reset by an administrator. Here are your new login credentials:
