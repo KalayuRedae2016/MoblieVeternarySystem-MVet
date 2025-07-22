@@ -42,7 +42,8 @@ router.route('/:userId')
   .patch(authoController.uploadFilesMiddleware,userController.updateUserProfile)
   .delete(userController.deleteUser);
 
-// router.route('/active-deactive/:userId').put(userController.activateDeactiveUser);
+router.route('/active-deactive/:userId').put(userController.activateDeactiveUser);
+
 // router.route('/sendEmails').post(userController.sendEmailMessages)
 
 

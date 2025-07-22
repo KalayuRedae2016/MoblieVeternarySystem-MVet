@@ -234,6 +234,32 @@ exports.deleteUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.activateDeactivateUser = catchAsync(async (req, res, next) => {
+  const userId = parseInt(req.params.userId, 10); // ensure it's an integer
+  const { isActive } = req.body;
+
+  if (typeof isActive !== 'boolean') {
+    return next(new AppError("isActive must be a boolean", 400));
+  }
+
+  const user = await User.findByPk(userId);
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+
+  // Update user's active status
+  user.isActive = isActive;
+  await user.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+    data: {
+      userId: user.id,
+      isActive: user.isActive,
+    },
+  });
+})
 exports.sendEmailMessages = catchAsync(async (req, res, next) => {
   const { emailList, subject, message } = req.body;
 

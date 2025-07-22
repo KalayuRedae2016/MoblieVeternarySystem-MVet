@@ -176,7 +176,7 @@ exports.getAnimalsByOwner = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getAnimalStatus = catchAsync(async (req, res, next) => {
+exports.getAnimalStatusByZone = catchAsync(async (req, res, next) => {
   const totalAnimals = await Animal.count();
 
   const Southern = await Animal.count({ where: { zone: "Southern" } });
