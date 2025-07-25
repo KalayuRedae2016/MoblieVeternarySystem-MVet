@@ -4,7 +4,7 @@ This document provides a summarized reference for the MVet API endpoints
 ## Base URL
 
 ```
-Base_URL: https://api.gkmvet.com/
+Base_URL: https://api.gkmvet.com/api/mvet
 ```
 
 ## Authentication

@@ -33,51 +33,59 @@ const filterObj = (obj, ...allowedFields) => {
 // Middleware for handling single file upload
 exports.uploadUserFile = userFileUpload.single('file');
 
-
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   console.log("🧠 getAllUsers controller running");
-  console.log("Requested User Role:", req.user.role);
-  const {role,isActive} = req.query;
-  let userQuery = {};
-  
-  if (role)  userQuery.role = role;
-  if(isActive) userQuery.isActive = isActive === 'true';
-  
- const users = await User.findAll({where:userQuery});
+  console.log("req.query", req.query);
+  console.log("req.user", req.user.role);
 
-  if (!users || users.length === 0) {
-    return next(new AppError('No users found', 404));
+  const { isActive } = req.query;
+  const where = {};
+
+  if (req.user.role === "admin") {
+    // Admins can see all users
+  } else if (req.user.role === "doctor") {
+    where.role = "user";
+  } else if (req.user.role === "user") {
+    return next(new AppError("Access denied: Users can only view their own profile", 403));
   }
 
-  // Initialize counters
-  let activePhysians= 0,
-      NonActivePhysians = 0,
-      adminUsers= 0,
-      owners=0
-    
+  if (req.user.role === "admin" && typeof isActive !== "undefined") {
+    where.isActive = isActive === "true";
+  }
 
-  const formattedUsers = users.map(user => {
-    if (user.role === "admin") adminUsers++;
-    if (user.isActive && user.role === "doctor") activePhysians++;
-    if (!user.isActive && user.role === "doctor") NonActivePhysians++;
-    if (user.isActive && user.role === "user") owners++;
-    
-
-    return {
-      ...user.toJSON(),
-      formattedCreatedAt: user.createdAt ? formatDate(user.createdAt) : null,
-      formattedUpdatedAt: user.updatedAt ? formatDate(user.updatedAt) : null,
-    };
+  // Fetch only necessary fields, raw mode for better performance
+  const users = await User.findAll({
+    where,
+    attributes: ["id", "name","phoneNumber", "role", "isActive","address", "createdAt", "updatedAt"],
+    raw: true,
   });
+
+  if (!users.length) return next(new AppError("No users found", 404));
+
+  // Grouping stats
+  const stats = {
+    adminUsers: [],
+    activePhysians: [],
+    nonActivePhysians: [],
+    owners: [],
+  };
+
+  for (const u of users) {
+    if (u.role === "admin") stats.adminUsers.push(u);
+    if (u.role === "doctor") {
+      u.isActive ? stats.activePhysians.push(u) : stats.nonActivePhysians.push(u);
+    }
+    if (u.role === "user" && u.isActive) stats.owners.push(u);
+  }
 
   res.status(200).json({
     status: 1,
     totalUsers: users.length,
-    adminUsers,
-    activePhysians,
-    NonActivePhysians,
-    owners,    
-    users: formattedUsers
+    adminCount: stats.adminUsers.length,
+    activePhysiansCount: stats.activePhysians.length,
+    nonActivePhysiansCount: stats.nonActivePhysians.length,
+    ownersCount: stats.owners.length,
+    ...stats,
   });
 });
 

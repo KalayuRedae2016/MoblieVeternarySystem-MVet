@@ -164,6 +164,13 @@ exports.deleteAnimals = catchAsync(async (req, res, next) => {
 
 //  Get animals owned by a specific user
 exports.getAnimalsByOwner = catchAsync(async (req, res, next) => {
+  const owner= await User.findByPk(req.params.ownerId, {
+    attributes: { exclude: ['password', 'passwordResetOTP', 'passwordResetOTPExpires'] },      
+  });
+  if (!owner) {
+    return next(new AppError('No owner found with that ID', 404));
+  }
+
   const animals = await Animal.findAll({
     where: { ownerId: req.params.ownerId },
     include: [{ model: MedicalVisit, as: 'visits' }]
@@ -172,7 +179,8 @@ exports.getAnimalsByOwner = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     results: animals.length,
-    data: { animals }
+    owner,
+    animals
   });
 });
 
