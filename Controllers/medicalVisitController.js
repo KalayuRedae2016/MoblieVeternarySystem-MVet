@@ -105,7 +105,6 @@ exports.updateVisit = catchAsync(async (req, res, next) => {
   });
 });
   
-
 //  Delete a visit
 exports.deleteVisit = catchAsync(async (req, res, next) => {
   const deletedCount = await MedicalVisit.destroy({
@@ -214,7 +213,6 @@ exports.getWeeklyVisits = catchAsync(async (req, res, next) => {
   const today = new Date();
 
   // Start from 6 days ago until today
-  const dailyStats = [];
   const allAnimalIds = new Set();
   const allPhysicianIds = new Set();
 

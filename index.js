@@ -8,12 +8,14 @@ const helmet = require('helmet');
 const hpp = require('hpp');
 const morgan = require("morgan");
 const AppError = require('./Utils/appError');
+const catchAsync = require('./Utils/catchAsync');
+const { Animal, MedicalVisit, User } = require('./Models'); // Adjust the import based
 const globalErrorHandler = require('./Controllers/errorController');
 
 const userRouter = require('./Routes/userRoutes');
 const animalRouter = require("./Routes/animalRoutes");
 const medicalVisitRouter = require('./Routes/medicalVisitsRoutes');
-
+const dashboardRouter = require('./Routes/dashBoardRoutes');
 const app = express();
 // const listEndpoints = require('express-list-endpoints');
 
@@ -117,6 +119,7 @@ app.use((req, res, next) => {
 app.use('/api/mvet/users', userRouter);
 app.use('/api/mvet/animals', animalRouter);
 app.use('/api/mvet/medicalVisits', medicalVisitRouter);
+app.use('/api/mvet/dashboard',dashboardRouter);
 
 // Catch undefined routes
 // app.all('*', (req, res, next) => {
