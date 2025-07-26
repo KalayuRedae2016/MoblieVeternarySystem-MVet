@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const catchAsync = require('../Utils/catchAsync');
 
 exports.getDashboardData = catchAsync(async (req, res, next) => {
+  
   const today = new Date();
   const startOfDay = new Date(today.setHours(0, 0, 0, 0));
   const endOfDay = new Date(today.setHours(23, 59, 59, 999));
@@ -65,7 +66,7 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
     MedicalVisit.count({ where: { outcome: 'referred' } }),
   ]);
 
-  const zones = ['Southern', 'Central', 'SouthEast', 'NorthWest', 'West', 'East'];
+  const zones = ['Southern', 'Central', 'SouthEast', 'NorthWest', 'West', 'East',"Mekelle"];
   const zoneCounts = {};
   for (const zone of zones) {
     zoneCounts[zone] = await Animal.count({ where: { zone } });
@@ -125,6 +126,8 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
     data: {
       appointments: {
         appointedPatients,
+      },
+      todaysVisits: {
         todayPhysicianOnDuty,
         todayPatientVisits,
       },
