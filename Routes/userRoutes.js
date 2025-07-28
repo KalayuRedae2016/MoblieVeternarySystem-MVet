@@ -29,7 +29,7 @@ router.patch('/updatePassword',authoController.updatePassword);
 router.get('/getMe',authoController.uploadFilesMiddleware,authoController.getMe);
 router.patch('/updateMe',authoController.uploadFilesMiddleware,authoController.updateMe);
 
-router.use(authoController.requiredRole('admin'));
+//router.use(authoController.requiredRole('admin'));
 
 router.patch('/resetPasswordByAdmin/:userId',authoController.resetPasswordByAdmin);
 
