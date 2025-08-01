@@ -3,13 +3,15 @@ const catchAsync = require('../Utils/catchAsync');
 const AppError = require('../Utils/appError');
 const { processUploadFilesToSave } = require('../Utils/fileController');
 const { Op } = require('sequelize');
+const logger = require('../Utils/logger');
+
 
 //  Create a medical visit
 exports.createVisit = catchAsync(async (req, res, next) => {
-  console.log('Creating visit with data:', req.body);
-  console.log('Authenticated user:', req.user.role);
-  console.log(" requested images to uploaded", req.files.images);
-
+  logger.info(`start:\n`);
+  logger.info(`Request body:\n${JSON.stringify(req.body, null, 2)}`);
+  logger.info(`Request query:\n${JSON.stringify(req.query, null, 2)}`);
+  
   const{animalId,visitDate,labResults,medications,...restVisit} = req.body;
   
   // Validate required fields
