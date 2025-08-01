@@ -10,6 +10,7 @@ const logger = require('../Utils/logger');
 exports.createVisit = catchAsync(async (req, res, next) => {
   logger.info(`start:\n`);
   logger.info(`Request body from mobile y:\n${JSON.stringify(req.body, null, 2)}`);
+  logger.info(`Request files from mobile y:\n${JSON.stringify(req.files, null, 2)}`);
   
   const{animalId,visitDate,labResults,medications,...restVisit} = req.body;
   
