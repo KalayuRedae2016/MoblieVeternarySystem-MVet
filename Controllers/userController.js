@@ -243,7 +243,7 @@ exports.deleteUsers = catchAsync(async (req, res, next) => {
 exports.activateDeactivateUser = catchAsync(async (req, res, next) => {
   
   logger.info(`Request body from mobile y:\n${JSON.stringify(req.body, null, 2)}`);
-  logger.info(`Request query from mobile y:\n${JSON.stringify(req.query, null, 2)}`);
+  logger.info(`Request query from mobile y:\n${JSON.stringify(req.params, null, 2)}`);
 
   const userId = parseInt(req.params.userId, 10);
   const { isActive } = req.body;
