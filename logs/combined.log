@@ -1,33 +1,16 @@
-2025-08-01 09:02:34 [info]: start:
-
-2025-08-01 09:02:35 [info]: Request body from mobile y:
+2025-08-03 10:33:30 [info]: Request body from mobile y:
 {
-  "animalId": "6",
-  "visitDate": "7/24/2025",
-  "immunizationDate": "7/29/2025"
+  "isActive": false
 }
-2025-08-01 09:02:35 [info]: Request files from mobile y:
+2025-08-03 10:33:30 [info]: Request query from mobile y:
 {
-  "images": [
-    {
-      "fieldname": "images",
-      "originalname": "images (4).jpg",
-      "encoding": "7bit",
-      "mimetype": "image/jpeg",
-      "destination": "uploads/documents",
-      "filename": "doc-images (4)-2025-08-01-1754028154874.jpg",
-      "path": "uploads\\documents\\doc-images (4)-2025-08-01-1754028154874.jpg",
-      "size": 10411
-    },
-    {
-      "fieldname": "images",
-      "originalname": "images (5).jpg",
-      "encoding": "7bit",
-      "mimetype": "image/jpeg",
-      "destination": "uploads/documents",
-      "filename": "doc-images (5)-2025-08-01-1754028154882.jpg",
-      "path": "uploads\\documents\\doc-images (5)-2025-08-01-1754028154882.jpg",
-      "size": 14665
-    }
-  ]
+  "userId": "12"
+}
+2025-08-03 10:34:15 [info]: Request body from mobile y:
+{
+  "isActive": false
+}
+2025-08-03 10:34:15 [info]: Request query from mobile y:
+{
+  "userId": "4"
 }

@@ -3,11 +3,14 @@ const { Op } = require('sequelize');
 const catchAsync = require('../Utils/catchAsync');
 
 exports.getDashboardData = catchAsync(async (req, res, next) => {
-  
-  const today = new Date();
-  const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-  const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+  // Correctly handle today's range
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(now);
+  endOfDay.setHours(23, 59, 59, 999);
 
+  // Main stats
   const [
     appointedPatients,
     todayPhysicianOnDuty,
@@ -66,11 +69,23 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
     MedicalVisit.count({ where: { outcome: 'referred' } }),
   ]);
 
-  const zones = ['Southern', 'Central', 'SouthEast', 'NorthWest', 'West', 'East',"Mekelle"];
-  const zoneCounts = {};
-  for (const zone of zones) {
-    zoneCounts[zone] = await Animal.count({ where: { zone } });
+  //  Unique physicians today
+  const todayVisits = await MedicalVisit.findAll({
+    where: { visitDate: { [Op.between]: [startOfDay, endOfDay] } },
+    include: [{ model: User, as: 'physician', attributes: ['id'] }],
+  });
+
+  const todayPhysicianIds = new Set();
+  for (const visit of todayVisits) {
+    if (visit.physician) todayPhysicianIds.add(visit.physician.id);
   }
+
+  // Zone counts optimized with Promise.all
+  const zones = ['Southern', 'Central', 'SouthEast', 'NorthWest', 'West', 'East', 'Mekelle'];
+  const zoneCountResults = await Promise.all(
+    zones.map(zone => Animal.count({ where: { zone } }))
+  );
+  const zoneCounts = Object.fromEntries(zones.map((zone, i) => [zone, zoneCountResults[i]]));
 
   // Weekly stats
   const weeklyResult = {};
@@ -79,11 +94,12 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
   const allPhysicianIds = new Set();
 
   for (let i = 6; i >= 0; i--) {
-    const day = new Date(today);
-    day.setDate(today.getDate() - i);
-
-    const start = new Date(day.setHours(0, 0, 0, 0));
-    const end = new Date(day.setHours(23, 59, 59, 999));
+    const date = new Date();
+    date.setDate(now.getDate() - i);
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
 
     const visits = await MedicalVisit.findAll({
       where: { visitDate: { [Op.between]: [start, end] } },
@@ -120,6 +136,7 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
     uniquePhysicianCount: allPhysicianIds.size,
   };
 
+  //  Final response
   res.status(200).json({
     status: 'success',
     message: 'Dashboard data fetched successfully',
@@ -128,8 +145,9 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
         appointedPatients,
       },
       todaysVisits: {
-        todayPhysicianOnDuty,
+        todayPhysicianOnDuty:todayPhysicianIds.size,
         todayPatientVisits,
+        //uniquePhysiciansToday: todayPhysicianIds.size, 
       },
       userStats: {
         activeAdmins,

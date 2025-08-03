@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken');
 const { Animal, User, MedicalVisit } = require('../Models');
 const { Op, where } = require('sequelize');
 const validator = require('validator');
-const logger = require('../Utils/logger'); // adjust path
-
+const logger = require('../Utils/logger');
+ 
 const catchAsync = require("../Utils/catchAsync")
 const AppError = require("../Utils/appError")
 require('dotenv').config();
