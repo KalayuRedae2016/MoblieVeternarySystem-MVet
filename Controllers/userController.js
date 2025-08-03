@@ -5,8 +5,6 @@ const { Op, where } = require('sequelize');
 const validator = require('validator');
 const logger = require('../Utils/logger'); // adjust path
 
-
-
 const catchAsync = require("../Utils/catchAsync")
 const AppError = require("../Utils/appError")
 require('dotenv').config();
@@ -243,7 +241,11 @@ exports.deleteUsers = catchAsync(async (req, res, next) => {
 });
 
 exports.activateDeactivateUser = catchAsync(async (req, res, next) => {
-  const userId = parseInt(req.params.userId, 10); // ensure it's an integer
+  
+  logger.info(`Request body from mobile y:\n${JSON.stringify(req.body, null, 2)}`);
+  logger.info(`Request query from mobile y:\n${JSON.stringify(req.query, null, 2)}`);
+
+  const userId = parseInt(req.params.userId, 10);
   const { isActive } = req.body;
 
   if (typeof isActive !== 'boolean') {
@@ -326,6 +328,5 @@ exports.sendEmailMessages = catchAsync(async (req, res, next) => {
     return next(new AppError('Failed to send one or more emails', 500));
   }
 });
-
 
 

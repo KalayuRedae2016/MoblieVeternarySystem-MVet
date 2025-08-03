@@ -5,7 +5,6 @@ const { processUploadFilesToSave } = require('../Utils/fileController');
 const { Op } = require('sequelize');
 const logger = require('../Utils/logger');
 
-
 //  Create a medical visit
 exports.createVisit = catchAsync(async (req, res, next) => {
   logger.info(`start:\n`);

@@ -164,7 +164,7 @@ exports.createMulterMiddleware = (destinationFolder, filenamePrefix, fileTypes) 
         console.log("Allowed FileTypes in the system", fileTypes)
         cb(null, true); // Accept the file
       } else {
-        cb(new Error('File type not allowed'), false); // Reject the file
+        cb(new Error('File type not allowed'), false);
       }
     } catch (err) {
       console.error("Error in fileFilter:", err.message);
