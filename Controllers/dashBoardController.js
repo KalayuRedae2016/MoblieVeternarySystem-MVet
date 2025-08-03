@@ -145,9 +145,9 @@ exports.getDashboardData = catchAsync(async (req, res, next) => {
         appointedPatients,
       },
       todaysVisits: {
-        todayPhysicianOnDuty:todayPhysicianIds.size,
+        todayPhysicianOnDuty,
         todayPatientVisits,
-        //uniquePhysiciansToday: todayPhysicianIds.size, 
+        uniquePhysiciansToday: todayPhysicianIds.size, 
       },
       userStats: {
         activeAdmins,
