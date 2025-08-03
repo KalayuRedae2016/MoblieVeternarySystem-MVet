@@ -52,20 +52,71 @@ const parsedMedications = medications ? JSON.parse(medications) : null;
   });
 });
 //  Get all medical visits in the hospital
+
 exports.getAllVisits = catchAsync(async (req, res, next) => {
+  // Extract query parameters
+  const {
+    visitDate,
+    startDate,
+    endDate,
+    outcome,
+    physicianId,
+    animalId,
+    immunizationGiven,
+    prognosis,
+    search
+  } = req.query;
+
+  // Build dynamic filter object
+  const filter = {};
+
+  // Exact date filter
+  if (visitDate) {
+    filter.visitDate = visitDate;
+  }
+
+  // Date range filter
+  if (startDate && endDate) {
+    filter.visitDate = {
+      [Op.between]: [new Date(startDate), new Date(endDate)]
+    };
+  }
+
+  // Specific field filters
+  if (outcome) filter.outcome = outcome;
+  if (physicianId) filter.physicianId = physicianId;
+  if (animalId) filter.animalId = animalId;
+  if (immunizationGiven) filter.immunizationGiven = immunizationGiven;
+  if (prognosis) filter.prognosis = prognosis;
+
+  // Optional text search on diagnosis, symptoms, recommendation
+  if (search) {
+    filter[Op.or] = [
+      { tentativeDiagnosis: { [Op.iLike]: `%${search}%` } },
+      { confirmatoryDiagnosis: { [Op.iLike]: `%${search}%` } },
+      { symptoms: { [Op.iLike]: `%${search}%` } },
+      { recommendation: { [Op.iLike]: `%${search}%` } }
+    ];
+  }
+
+  // Fetch filtered visits
   const visits = await MedicalVisit.findAll({
+    where: filter,
     include: [
       { model: Animal, as: 'animal' },
       { model: User, as: 'physician' }
-    ]
+    ],
+    order: [['visitDate', 'DESC']] // Optional: latest first
   });
 
+  // Send response
   res.status(200).json({
     status: 'success',
     results: visits.length,
     data: { visits }
   });
 });
+
 
 // Get a specific medical visit by ID
 exports.getVisitById = catchAsync(async (req, res, next) => {
