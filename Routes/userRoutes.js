@@ -39,7 +39,7 @@ router.route('/')
 
 router.route('/:userId')
   .get(userController.getUser)
-  .patch(authoController.uploadFilesMiddleware,userController.updateUserProfile)
+  .put(authoController.uploadFilesMiddleware,userController.updateUserProfile)
   .delete(userController.deleteUser);
 
 router.route('/active-deactive/:userId').put(userController.activateDeactivateUser);
