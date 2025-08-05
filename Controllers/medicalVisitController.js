@@ -145,41 +145,20 @@ exports.updateVisit = catchAsync(async (req, res, next) => {
     return next(new AppError('No visit found with that ID', 404));
   }
 
-  //  Parse labResults
-  let parsedLabResults = null;
-  try {
-    parsedLabResults = req.body.labResults
-      ? typeof req.body.labResults === 'string'
-        ? JSON.parse(req.body.labResults)
-        : req.body.labResults
-      : medicalVisit.labResults;
-  } catch (err) {
-    return next(new AppError('Invalid JSON format for labResults', 400));
-  }
 
-  //  Parse medications
-  let parsedMedications = null;
-  try {
-    parsedMedications = req.body.medications
-      ? typeof req.body.medications === 'string'
-        ? JSON.parse(req.body.medications)
-        : req.body.medications
-      : medicalVisit.medications;
-  } catch (err) {
-    return next(new AppError('Invalid JSON format for medications', 400));
-  }
+  const parsedLabResults = req.body.labResults ? JSON.parse(req.body.labResults) : null;
+  const parsedMedications = req.body.medications ? JSON.parse(req.body.medications) : null;
 
-  
-  //  File uploads
-  let { images: uploadedImages } = await processUploadFilesToSave(req, req.files, req.body, medicalVisit);
-  const finalImages = uploadedImages || parsedImages || medicalVisit.images;
+    const {images} = await processUploadFilesToSave(req, req.files, req.body)
+    console.log("imagesUploaded", images);
+    
 
   //  Construct final update data
   const updatedData = {
     ...req.body,
     labResults: parsedLabResults,
     medications: parsedMedications,
-    images: finalImages,
+    images: images || medicalVisit.images // Keep existing images if none provided,
   };
 
   // Perform update
