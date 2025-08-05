@@ -59,6 +59,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 
   const processedUsers = users.map(user => ({
     ...user,
+    isActive:Boolean(user.isActive),
     changePassword: Boolean(user.changePassword),
   }));
 
