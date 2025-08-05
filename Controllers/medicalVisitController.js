@@ -137,27 +137,75 @@ exports.getVisitById = catchAsync(async (req, res, next) => {
 
 //  Update a visit
 exports.updateVisit = catchAsync(async (req, res, next) => {
-
-  logger.info(`Request body for updated:\n${JSON.stringify(req.body, null, 2)}`);
+  logger.info(`Request body for update:\n${JSON.stringify(req.body, null, 2)}`);
   logger.info(`Request files for update:\n${JSON.stringify(req.files, null, 2)}`);
-  
+
   const medicalVisit = await MedicalVisit.findByPk(req.params.id);
   if (!medicalVisit) {
     return next(new AppError('No visit found with that ID', 404));
   }
-  let {images} = await processUploadFilesToSave(req, req.files, req.body, medicalVisit)
-  if(!images) images=medicalVisit.images
-  const updatedData={...req.body, images};
 
+  //  Parse labResults
+  let parsedLabResults = null;
+  try {
+    parsedLabResults = req.body.labResults
+      ? typeof req.body.labResults === 'string'
+        ? JSON.parse(req.body.labResults)
+        : req.body.labResults
+      : medicalVisit.labResults;
+  } catch (err) {
+    return next(new AppError('Invalid JSON format for labResults', 400));
+  }
+
+  //  Parse medications
+  let parsedMedications = null;
+  try {
+    parsedMedications = req.body.medications
+      ? typeof req.body.medications === 'string'
+        ? JSON.parse(req.body.medications)
+        : req.body.medications
+      : medicalVisit.medications;
+  } catch (err) {
+    return next(new AppError('Invalid JSON format for medications', 400));
+  }
+
+  //  Parse images (if sent as JSON instead of files)
+  let parsedImages = null;
+  try {
+    parsedImages = req.body.images
+      ? typeof req.body.images === 'string'
+        ? JSON.parse(req.body.images)
+        : req.body.images
+      : null;
+  } catch (err) {
+    return next(new AppError('Invalid JSON format for images', 400));
+  }
+
+  //  File uploads
+  let { images: uploadedImages } = await processUploadFilesToSave(req, req.files, req.body, medicalVisit);
+  const finalImages = uploadedImages || parsedImages || medicalVisit.images;
+
+  //  Construct final update data
+  const updatedData = {
+    ...req.body,
+    labResults: parsedLabResults,
+    medications: parsedMedications,
+    images: finalImages,
+  };
+
+  // Perform update
   await medicalVisit.update(updatedData);
-  const updatedMedicalVisit=await MedicalVisit.findByPk(req.params.id)
+
+  //  Return updated record
+  const updatedMedicalVisit = await MedicalVisit.findByPk(req.params.id);
 
   res.status(200).json({
     status: 'success',
     message: 'Medical Visit updated successfully',
-    data: updatedMedicalVisit
+    data: updatedMedicalVisit,
   });
 });
+
   
 //  Delete a visit
 exports.deleteVisit = catchAsync(async (req, res, next) => {
