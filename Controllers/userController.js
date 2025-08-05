@@ -54,7 +54,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   // Fetch only necessary fields, raw mode for better performance
   const users = await User.findAll({
     where,
-    attributes: ["id", "name","phoneNumber", "role", "isActive","address", "createdAt", "updatedAt"],
+    //attributes: ["id", "name","phoneNumber", "role", "isActive","address", "createdAt", "updatedAt"],
     raw: true,
   });
 
