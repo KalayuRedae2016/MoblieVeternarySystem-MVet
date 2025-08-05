@@ -50,14 +50,13 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     where.isActive = isActive === "true";
   }
 
-  // Fetch only necessary fields, raw mode for better performance
   const users = await User.findAll({
     where,
-    //attributes: ["id", "name","phoneNumber", "role", "isActive","address", "createdAt", "updatedAt"],
     raw: true,
   });
 
   if (!users.length) return next(new AppError("No users found", 404));
+
   const processedUsers = users.map(user => ({
     ...user,
     changePassword: Boolean(user.changePassword),
@@ -71,7 +70,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     owners: [],
   };
 
-  for (const u of users) {
+  for (const u of processedUsers) {
     if (u.role === "admin") stats.adminUsers.push(u);
     if (u.role === "doctor") {
       u.isActive ? stats.activePhysians.push(u) : stats.nonActivePhysians.push(u);
@@ -86,10 +85,10 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     activePhysiansCount: stats.activePhysians.length,
     nonActivePhysiansCount: stats.nonActivePhysians.length,
     ownersCount: stats.owners.length,
-    message: "Users fetched successfully",
     ...stats,
   });
 });
+
 
 exports.getUser = catchAsync(async (req, res, next) => {
   let userId = req.user.id; // default: self-access
