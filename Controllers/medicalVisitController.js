@@ -169,18 +169,7 @@ exports.updateVisit = catchAsync(async (req, res, next) => {
     return next(new AppError('Invalid JSON format for medications', 400));
   }
 
-  //  Parse images (if sent as JSON instead of files)
-  let parsedImages = null;
-  try {
-    parsedImages = req.body.images
-      ? typeof req.body.images === 'string'
-        ? JSON.parse(req.body.images)
-        : req.body.images
-      : null;
-  } catch (err) {
-    return next(new AppError('Invalid JSON format for images', 400));
-  }
-
+  
   //  File uploads
   let { images: uploadedImages } = await processUploadFilesToSave(req, req.files, req.body, medicalVisit);
   const finalImages = uploadedImages || parsedImages || medicalVisit.images;

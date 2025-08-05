@@ -14,3 +14,70 @@
 {
   "userId": "4"
 }
+2025-08-05 22:28:57 [info]: Request body for update:
+{
+  "ownerComplaint": "she is limingddd notyyjuytresrr",
+  "immunizationDate": "7/29/2025"
+}
+2025-08-05 22:28:58 [info]: Request files for update:
+{
+  "images": [
+    {
+      "fieldname": "images",
+      "originalname": "photo_2024-10-16_17-18-29.jpg",
+      "encoding": "7bit",
+      "mimetype": "image/jpeg",
+      "destination": "uploads/documents",
+      "filename": "doc-photo_2024-10-16_17-18-29-2025-08-05-1754422137870.jpg",
+      "path": "uploads\\documents\\doc-photo_2024-10-16_17-18-29-2025-08-05-1754422137870.jpg",
+      "size": 148563
+    },
+    {
+      "fieldname": "images",
+      "originalname": "photo_2025-06-01_19-29-40.jpg",
+      "encoding": "7bit",
+      "mimetype": "image/jpeg",
+      "destination": "uploads/documents",
+      "filename": "doc-photo_2025-06-01_19-29-40-2025-08-05-1754422137986.jpg",
+      "path": "uploads\\documents\\doc-photo_2025-06-01_19-29-40-2025-08-05-1754422137986.jpg",
+      "size": 101781
+    }
+  ]
+}
+2025-08-05 22:29:18 [info]: Request body for update:
+{
+  "ownerComplaint": "she is limingddd notyyjuytresrr",
+  "immunizationDate": "7/29/2025"
+}
+2025-08-05 22:29:18 [info]: Request files for update:
+{
+  "images": [
+    {
+      "fieldname": "images",
+      "originalname": "photo_2024-10-16_17-18-29.jpg",
+      "encoding": "7bit",
+      "mimetype": "image/jpeg",
+      "destination": "uploads/documents",
+      "filename": "doc-photo_2024-10-16_17-18-29-2025-08-05-1754422158653.jpg",
+      "path": "uploads\\documents\\doc-photo_2024-10-16_17-18-29-2025-08-05-1754422158653.jpg",
+      "size": 148563
+    },
+    {
+      "fieldname": "images",
+      "originalname": "photo_2025-06-01_19-29-40.jpg",
+      "encoding": "7bit",
+      "mimetype": "image/jpeg",
+      "destination": "uploads/documents",
+      "filename": "doc-photo_2025-06-01_19-29-40-2025-08-05-1754422158669.jpg",
+      "path": "uploads\\documents\\doc-photo_2025-06-01_19-29-40-2025-08-05-1754422158669.jpg",
+      "size": 101781
+    }
+  ]
+}
+2025-08-05 22:29:56 [info]: Request body for update:
+{
+  "ownerComplaint": "she is limingddd notyyjuytresrr",
+  "immunizationDate": "7/29/2025"
+}
+2025-08-05 22:29:56 [info]: Request files for update:
+{}
