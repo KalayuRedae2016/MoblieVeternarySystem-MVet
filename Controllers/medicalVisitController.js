@@ -52,7 +52,6 @@ const parsedMedications = medications ? JSON.parse(medications) : null;
   });
 });
 //  Get all medical visits in the hospital
-
 exports.getAllVisits = catchAsync(async (req, res, next) => {
   // Extract query parameters
   const {
@@ -117,7 +116,6 @@ exports.getAllVisits = catchAsync(async (req, res, next) => {
   });
 });
 
-
 // Get a specific medical visit by ID
 exports.getVisitById = catchAsync(async (req, res, next) => {
   const visit = await MedicalVisit.findByPk(req.params.id, {
@@ -139,6 +137,10 @@ exports.getVisitById = catchAsync(async (req, res, next) => {
 
 //  Update a visit
 exports.updateVisit = catchAsync(async (req, res, next) => {
+
+  logger.info(`Request body for updated:\n${JSON.stringify(req.body, null, 2)}`);
+  logger.info(`Request files for update:\n${JSON.stringify(req.files, null, 2)}`);
+  
   const medicalVisit = await MedicalVisit.findByPk(req.params.id);
   if (!medicalVisit) {
     return next(new AppError('No visit found with that ID', 404));
