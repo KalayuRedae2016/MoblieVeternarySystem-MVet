@@ -27,7 +27,6 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-
 // Middleware for handling single file upload
 exports.uploadUserFile = userFileUpload.single('file');
 
@@ -59,6 +58,10 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 
   if (!users.length) return next(new AppError("No users found", 404));
+  const processedUsers = users.map(user => ({
+    ...user,
+    changePassword: Boolean(user.changePassword),
+  }));
 
   // Grouping stats
   const stats = {
@@ -78,11 +81,12 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 1,
-    totalUsers: users.length,
+    totalUsers: processedUsers.length,
     adminCount: stats.adminUsers.length,
     activePhysiansCount: stats.activePhysians.length,
     nonActivePhysiansCount: stats.nonActivePhysians.length,
     ownersCount: stats.owners.length,
+    message: "Users fetched successfully",
     ...stats,
   });
 });
