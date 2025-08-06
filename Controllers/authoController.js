@@ -13,6 +13,7 @@ const { sendEmail, sendWelcomeEmail } = require('../Utils/email');
 const { formatDate } = require("../Utils/formatDate")
 // const {logAction}=require("../Utils/logUtils")
 const { deleteFile, createMulterMiddleware, processUploadFilesToSave } = require('../Utils/fileController');
+const user = require("../Models/user");
 
 const signInToken = (user) => {
   const payload = { id: user.id, role: user.role };
@@ -70,8 +71,13 @@ exports.signup = catchAsync(async (req, res, next) => {
   console.error("Sequelize DB query error:", error);
   return next(new AppError("Internal Server Error", 500));
 }
-  const newPassword= req.body.password || User.generateRandomPassword();
-  const hashedPassword = await bcrypt.hash(newPassword, 12);// Hash password
+
+let newPassword = req.body.password;
+if (!newPassword) {
+  newPassword = req.body.phoneNumber || User.generateRandomPassword();
+}
+const hashedPassword = await bcrypt.hash(newPassword, 12);// Hash password
+ 
 
   const newUser = await User.create({
     name,
@@ -86,13 +92,17 @@ exports.signup = catchAsync(async (req, res, next) => {
     profileImage: profileImage,
     // isActive:true
   });
+   
   //await logAction
-  await sendWelcomeEmail(newUser, password)
+  await sendWelcomeEmail(newUser, newPassword)
+
+  const userResponse = { ...newUser.toJSON() };
+  delete userResponse.password;
 
   // Return success response
   res.status(200).json({
     message: 'User registered successfully.',
-    data: newUser,
+    data: userResponse,
   });
 });
 

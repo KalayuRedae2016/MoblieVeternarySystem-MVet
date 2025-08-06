@@ -215,7 +215,27 @@ exports.updateUserProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  const userId = parseInt(req.params.userId, 10); // ensure it's an integer
+  const userId = parseInt(req.params.userId, 10);
+
+  const user = await User.findByPk(userId); // ✅ await added
+
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+
+  // Make sure role exists
+  console.log("Requested by user:", req.user);
+  console.log("User to delete:", user.id, user.role);
+
+  //  Type-safe comparison
+  if (req.user.id !== userId && req.user.role !== 'admin') {
+    return next(new AppError("Access denied: You can only delete your own profile", 403));
+  }
+
+  //  Prevent admin deletion
+  if (user.role === 'admin') {
+    return next(new AppError("Access denied: Admin profiles cannot be deleted", 403));
+  }
 
   const deletedCount = await User.destroy({ where: { id: userId } });
 
@@ -228,6 +248,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
     message: 'User deleted successfully',
   });
 });
+
 
 exports.deleteUsers = catchAsync(async (req, res, next) => {
   const deletedCount = await User.destroy({
