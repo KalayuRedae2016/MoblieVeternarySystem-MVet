@@ -41,7 +41,7 @@ exports.sendWelcomeEmail = async (user, password) => {
   const email = user.email;
   const loginLink = process.env.NODE_ENV === 'development' 
     ? 'http://localhost:8085'
-    : 'https://mvet.com';
+    : 'https://api.mvet.com';
 
   const message = `Hi ${user.name},
   

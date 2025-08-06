@@ -74,11 +74,10 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 let newPassword = req.body.password;
 if (!newPassword) {
-  newPassword = req.body.phoneNumber || User.generateRandomPassword();
+  newPassword = "mvet1234" || User.generateRandomPassword();
 }
 const hashedPassword = await bcrypt.hash(newPassword, 12);// Hash password
  
-
   const newUser = await User.create({
     name,
     phoneNumber,
