@@ -70,7 +70,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   console.error("Sequelize DB query error:", error);
   return next(new AppError("Internal Server Error", 500));
 }
-  const hashedPassword = await bcrypt.hash(password, 12);// Hash password
+  const newPassword= req.body.password || User.generateRandomPassword();
+  const hashedPassword = await bcrypt.hash(newPassword, 12);// Hash password
 
   const newUser = await User.create({
     name,

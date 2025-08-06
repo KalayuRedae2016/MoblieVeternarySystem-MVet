@@ -145,7 +145,6 @@ exports.updateVisit = catchAsync(async (req, res, next) => {
     return next(new AppError('No visit found with that ID', 404));
   }
 
-
   const parsedLabResults = req.body.labResults ? JSON.parse(req.body.labResults) : null;
   const parsedMedications = req.body.medications ? JSON.parse(req.body.medications) : null;
 

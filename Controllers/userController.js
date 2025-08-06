@@ -90,7 +90,6 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
-
 exports.getUser = catchAsync(async (req, res, next) => {
   let userId = req.user.id; // default: self-access
 

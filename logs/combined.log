@@ -81,3 +81,66 @@
 }
 2025-08-05 22:29:56 [info]: Request files for update:
 {}
+2025-08-05 22:45:29 [info]: start:
+
+2025-08-05 22:45:29 [info]: Request body from mobile y:
+{
+  "animalId": "3",
+  "visitDate": "7/24/2025",
+  "immunizationDate": "7/29/2025"
+}
+2025-08-05 22:45:29 [info]: Request files from mobile y:
+{
+  "images": [
+    {
+      "fieldname": "images",
+      "originalname": "photo_2024-10-16_17-18-29.jpg",
+      "encoding": "7bit",
+      "mimetype": "image/jpeg",
+      "destination": "uploads/documents",
+      "filename": "doc-photo_2024-10-16_17-18-29-2025-08-05-1754423129891.jpg",
+      "path": "uploads\\documents\\doc-photo_2024-10-16_17-18-29-2025-08-05-1754423129891.jpg",
+      "size": 148563
+    },
+    {
+      "fieldname": "images",
+      "originalname": "photo_2025-06-01_19-29-40.jpg",
+      "encoding": "7bit",
+      "mimetype": "image/jpeg",
+      "destination": "uploads/documents",
+      "filename": "doc-photo_2025-06-01_19-29-40-2025-08-05-1754423129907.jpg",
+      "path": "uploads\\documents\\doc-photo_2025-06-01_19-29-40-2025-08-05-1754423129907.jpg",
+      "size": 101781
+    }
+  ]
+}
+2025-08-05 22:46:11 [info]: Request body for update:
+{
+  "ownerComplaint": "she is limingddd notyyjuytresrrkk",
+  "immunizationDate": "7/29/2025"
+}
+2025-08-05 22:46:11 [info]: Request files for update:
+{
+  "images": [
+    {
+      "fieldname": "images",
+      "originalname": "475816646_536736822752342_6481551095218597821_n.jpg",
+      "encoding": "7bit",
+      "mimetype": "image/jpeg",
+      "destination": "uploads/documents",
+      "filename": "doc-475816646_536736822752342_6481551095218597821_n-2025-08-05-1754423171490.jpg",
+      "path": "uploads\\documents\\doc-475816646_536736822752342_6481551095218597821_n-2025-08-05-1754423171490.jpg",
+      "size": 42502
+    },
+    {
+      "fieldname": "images",
+      "originalname": "481778640_1884357415469125_6683052782583037142_n.jpg",
+      "encoding": "7bit",
+      "mimetype": "image/jpeg",
+      "destination": "uploads/documents",
+      "filename": "doc-481778640_1884357415469125_6683052782583037142_n-2025-08-05-1754423171494.jpg",
+      "path": "uploads\\documents\\doc-481778640_1884357415469125_6683052782583037142_n-2025-08-05-1754423171494.jpg",
+      "size": 285815
+    }
+  ]
+}
