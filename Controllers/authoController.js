@@ -72,10 +72,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   return next(new AppError("Internal Server Error", 500));
 }
 
-let newPassword = req.body.password;
-if (!newPassword) {
-  newPassword = "mvet1234" || User.generateRandomPassword();
-}
+
+const newPassword = req.body.password || User.generateRandomPassword
 const hashedPassword = await bcrypt.hash(newPassword, 12);// Hash password
  
   const newUser = await User.create({
